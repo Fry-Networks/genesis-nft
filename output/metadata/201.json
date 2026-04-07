@@ -1,0 +1,71 @@
+{
+  "name": "fry.farm Genesis #201",
+  "description": "Limited edition Genesis Pass for fry.farm \u2014 1,000 unique cyberpunk french fry characters. Holders receive 10% of all fry.farm platform fees distributed monthly in FRY.",
+  "image": "",
+  "image_integrity": "sha256-c8dce7139c857643a07720556945840a629fc3ebb51483e94c6bb6fc308fc42a",
+  "external_url": "https://fry.farm",
+  "attributes": [
+    {
+      "trait_type": "Background",
+      "value": "dark neon-lit city alleyway with rain"
+    },
+    {
+      "trait_type": "Background Rarity",
+      "value": "Uncommon"
+    },
+    {
+      "trait_type": "Eyes",
+      "value": "deep purple glowing eyes with circuit patterns in the iris"
+    },
+    {
+      "trait_type": "Eyes Rarity",
+      "value": "Epic"
+    },
+    {
+      "trait_type": "Outfit",
+      "value": "armored streetwear jacket with LED shoulder pads"
+    },
+    {
+      "trait_type": "Outfit Rarity",
+      "value": "Rare"
+    },
+    {
+      "trait_type": "Headgear",
+      "value": "no headgear"
+    },
+    {
+      "trait_type": "Headgear Rarity",
+      "value": "Common"
+    },
+    {
+      "trait_type": "Held Item",
+      "value": "holding an open glowing laptop"
+    },
+    {
+      "trait_type": "Held Item Rarity",
+      "value": "Uncommon"
+    },
+    {
+      "trait_type": "Aura",
+      "value": "intense golden flame aura engulfing the character"
+    },
+    {
+      "trait_type": "Aura Rarity",
+      "value": "Legendary"
+    },
+    {
+      "trait_type": "Overall Rarity",
+      "value": "Legendary"
+    },
+    {
+      "trait_type": "Rarity Score",
+      "value": 2.8333
+    }
+  ],
+  "properties": {
+    "token_id": 201,
+    "collection": "fry.farm Genesis",
+    "rarity_score": 2.8333,
+    "overall_rarity": "Legendary"
+  }
+}

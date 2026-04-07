@@ -1,0 +1,71 @@
+{
+  "name": "fry.farm Genesis #709",
+  "description": "Limited edition Genesis Pass for fry.farm \u2014 1,000 unique cyberpunk french fry characters. Holders receive 10% of all fry.farm platform fees distributed monthly in FRY.",
+  "image": "",
+  "image_integrity": "sha256-d9c431f9ca3005fb889b8e2db167d57661c0d0f3df0000b3f4447c213887e545",
+  "external_url": "https://fry.farm",
+  "attributes": [
+    {
+      "trait_type": "Background",
+      "value": "massive server room with rows of blinking lights in darkness"
+    },
+    {
+      "trait_type": "Background Rarity",
+      "value": "Epic"
+    },
+    {
+      "trait_type": "Eyes",
+      "value": "asymmetric eyes \u2014 one red one blue cybernetic"
+    },
+    {
+      "trait_type": "Eyes Rarity",
+      "value": "Rare"
+    },
+    {
+      "trait_type": "Outfit",
+      "value": "nano-fiber stealth armor with adaptive camouflage shimmer"
+    },
+    {
+      "trait_type": "Outfit Rarity",
+      "value": "Epic"
+    },
+    {
+      "trait_type": "Headgear",
+      "value": "simple dark beanie"
+    },
+    {
+      "trait_type": "Headgear Rarity",
+      "value": "Common"
+    },
+    {
+      "trait_type": "Held Item",
+      "value": "holding a translucent data crystal"
+    },
+    {
+      "trait_type": "Held Item Rarity",
+      "value": "Rare"
+    },
+    {
+      "trait_type": "Aura",
+      "value": "deep indigo shield-like energy barrier partially visible"
+    },
+    {
+      "trait_type": "Aura Rarity",
+      "value": "Epic"
+    },
+    {
+      "trait_type": "Overall Rarity",
+      "value": "Legendary"
+    },
+    {
+      "trait_type": "Rarity Score",
+      "value": 3.1667
+    }
+  ],
+  "properties": {
+    "token_id": 709,
+    "collection": "fry.farm Genesis",
+    "rarity_score": 3.1667,
+    "overall_rarity": "Legendary"
+  }
+}

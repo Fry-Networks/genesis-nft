@@ -1,0 +1,71 @@
+{
+  "name": "fry.farm Genesis #223",
+  "description": "Limited edition Genesis Pass for fry.farm \u2014 1,000 unique cyberpunk french fry characters. Holders receive 10% of all fry.farm platform fees distributed monthly in FRY.",
+  "image": "",
+  "image_integrity": "sha256-c5f7dc9a70903d4c8b65d7a2456b0ba7951ec3864525d4193aa00221b7a6aa21",
+  "external_url": "https://fry.farm",
+  "attributes": [
+    {
+      "trait_type": "Background",
+      "value": "solid dark navy blue"
+    },
+    {
+      "trait_type": "Background Rarity",
+      "value": "Common"
+    },
+    {
+      "trait_type": "Eyes",
+      "value": "holographic prismatic eyes projecting data"
+    },
+    {
+      "trait_type": "Eyes Rarity",
+      "value": "Epic"
+    },
+    {
+      "trait_type": "Outfit",
+      "value": "sleek dark mechanical suit with glowing joint seams"
+    },
+    {
+      "trait_type": "Outfit Rarity",
+      "value": "Rare"
+    },
+    {
+      "trait_type": "Headgear",
+      "value": "antenna array headband receiving signals"
+    },
+    {
+      "trait_type": "Headgear Rarity",
+      "value": "Rare"
+    },
+    {
+      "trait_type": "Held Item",
+      "value": "holding an infinity orb of swirling golden blockchain data"
+    },
+    {
+      "trait_type": "Held Item Rarity",
+      "value": "Legendary"
+    },
+    {
+      "trait_type": "Aura",
+      "value": "reality-warping aura \u2014 the space around the character bends and glows"
+    },
+    {
+      "trait_type": "Aura Rarity",
+      "value": "Legendary"
+    },
+    {
+      "trait_type": "Overall Rarity",
+      "value": "Legendary"
+    },
+    {
+      "trait_type": "Rarity Score",
+      "value": 3.5
+    }
+  ],
+  "properties": {
+    "token_id": 223,
+    "collection": "fry.farm Genesis",
+    "rarity_score": 3.5,
+    "overall_rarity": "Legendary"
+  }
+}

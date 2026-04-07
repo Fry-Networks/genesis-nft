@@ -1,0 +1,71 @@
+{
+  "name": "fry.farm Genesis #168",
+  "description": "Limited edition Genesis Pass for fry.farm \u2014 1,000 unique cyberpunk french fry characters. Holders receive 10% of all fry.farm platform fees distributed monthly in FRY.",
+  "image": "",
+  "image_integrity": "sha256-fc16c9f1ae3c55c0fc613f2375058bbb8044343e3da7a14a3097bacd3ff0c6f5",
+  "external_url": "https://fry.farm",
+  "attributes": [
+    {
+      "trait_type": "Background",
+      "value": "solid dark navy blue"
+    },
+    {
+      "trait_type": "Background Rarity",
+      "value": "Common"
+    },
+    {
+      "trait_type": "Eyes",
+      "value": "eyes with scrolling code reflected in them"
+    },
+    {
+      "trait_type": "Eyes Rarity",
+      "value": "Rare"
+    },
+    {
+      "trait_type": "Outfit",
+      "value": "dark trenchcoat lined with fiber optic threads"
+    },
+    {
+      "trait_type": "Outfit Rarity",
+      "value": "Rare"
+    },
+    {
+      "trait_type": "Headgear",
+      "value": "no headgear"
+    },
+    {
+      "trait_type": "Headgear Rarity",
+      "value": "Common"
+    },
+    {
+      "trait_type": "Held Item",
+      "value": "holding a can of soda"
+    },
+    {
+      "trait_type": "Held Item Rarity",
+      "value": "Common"
+    },
+    {
+      "trait_type": "Aura",
+      "value": "no visible aura"
+    },
+    {
+      "trait_type": "Aura Rarity",
+      "value": "Common"
+    },
+    {
+      "trait_type": "Overall Rarity",
+      "value": "Common"
+    },
+    {
+      "trait_type": "Rarity Score",
+      "value": 1.6667
+    }
+  ],
+  "properties": {
+    "token_id": 168,
+    "collection": "fry.farm Genesis",
+    "rarity_score": 1.6667,
+    "overall_rarity": "Common"
+  }
+}

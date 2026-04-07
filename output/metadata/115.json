@@ -1,0 +1,71 @@
+{
+  "name": "fry.farm Genesis #115",
+  "description": "Limited edition Genesis Pass for fry.farm \u2014 1,000 unique cyberpunk french fry characters. Holders receive 10% of all fry.farm platform fees distributed monthly in FRY.",
+  "image": "",
+  "image_integrity": "sha256-9c26a537a5598a6fbe0e40db32fd8455f86dcd14636381e74742edecf1bd49aa",
+  "external_url": "https://fry.farm",
+  "attributes": [
+    {
+      "trait_type": "Background",
+      "value": "solid dark navy blue"
+    },
+    {
+      "trait_type": "Background Rarity",
+      "value": "Common"
+    },
+    {
+      "trait_type": "Eyes",
+      "value": "eyes with scrolling code reflected in them"
+    },
+    {
+      "trait_type": "Eyes Rarity",
+      "value": "Rare"
+    },
+    {
+      "trait_type": "Outfit",
+      "value": "plain dark gray hoodie"
+    },
+    {
+      "trait_type": "Outfit Rarity",
+      "value": "Common"
+    },
+    {
+      "trait_type": "Headgear",
+      "value": "sleek open-face cyber helmet with HUD visor"
+    },
+    {
+      "trait_type": "Headgear Rarity",
+      "value": "Rare"
+    },
+    {
+      "trait_type": "Held Item",
+      "value": "holding a wrench with circuitry patterns"
+    },
+    {
+      "trait_type": "Held Item Rarity",
+      "value": "Uncommon"
+    },
+    {
+      "trait_type": "Aura",
+      "value": "very faint warm ambient glow around the character"
+    },
+    {
+      "trait_type": "Aura Rarity",
+      "value": "Common"
+    },
+    {
+      "trait_type": "Overall Rarity",
+      "value": "Uncommon"
+    },
+    {
+      "trait_type": "Rarity Score",
+      "value": 1.8333
+    }
+  ],
+  "properties": {
+    "token_id": 115,
+    "collection": "fry.farm Genesis",
+    "rarity_score": 1.8333,
+    "overall_rarity": "Uncommon"
+  }
+}

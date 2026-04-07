@@ -1,0 +1,71 @@
+{
+  "name": "fry.farm Genesis #784",
+  "description": "Limited edition Genesis Pass for fry.farm \u2014 1,000 unique cyberpunk french fry characters. Holders receive 10% of all fry.farm platform fees distributed monthly in FRY.",
+  "image": "",
+  "image_integrity": "sha256-38052962d1a2493bcab12793653ca16465d0e37d0d2ac46c984ad69522b6a2e3",
+  "external_url": "https://fry.farm",
+  "attributes": [
+    {
+      "trait_type": "Background",
+      "value": "massive server room with rows of blinking lights in darkness"
+    },
+    {
+      "trait_type": "Background Rarity",
+      "value": "Epic"
+    },
+    {
+      "trait_type": "Eyes",
+      "value": "rectangular pixel eyes like an LED display"
+    },
+    {
+      "trait_type": "Eyes Rarity",
+      "value": "Uncommon"
+    },
+    {
+      "trait_type": "Outfit",
+      "value": "high-tech lab coat with holographic badge and arm displays"
+    },
+    {
+      "trait_type": "Outfit Rarity",
+      "value": "Rare"
+    },
+    {
+      "trait_type": "Headgear",
+      "value": "neural interface crown with glowing nodes at temples"
+    },
+    {
+      "trait_type": "Headgear Rarity",
+      "value": "Epic"
+    },
+    {
+      "trait_type": "Held Item",
+      "value": "holding an open glowing laptop"
+    },
+    {
+      "trait_type": "Held Item Rarity",
+      "value": "Uncommon"
+    },
+    {
+      "trait_type": "Aura",
+      "value": "violet electromagnetic aura with visible force lines"
+    },
+    {
+      "trait_type": "Aura Rarity",
+      "value": "Epic"
+    },
+    {
+      "trait_type": "Overall Rarity",
+      "value": "Legendary"
+    },
+    {
+      "trait_type": "Rarity Score",
+      "value": 3.1667
+    }
+  ],
+  "properties": {
+    "token_id": 784,
+    "collection": "fry.farm Genesis",
+    "rarity_score": 3.1667,
+    "overall_rarity": "Legendary"
+  }
+}

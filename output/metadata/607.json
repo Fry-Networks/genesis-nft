@@ -1,0 +1,71 @@
+{
+  "name": "fry.farm Genesis #607",
+  "description": "Limited edition Genesis Pass for fry.farm \u2014 1,000 unique cyberpunk french fry characters. Holders receive 10% of all fry.farm platform fees distributed monthly in FRY.",
+  "image": "",
+  "image_integrity": "sha256-1e6cad15e554c8cce7393de23c124ce7796e3a6d4cebb3f9efe3df02d34762cd",
+  "external_url": "https://fry.farm",
+  "attributes": [
+    {
+      "trait_type": "Background",
+      "value": "dark neon-lit city alleyway with rain"
+    },
+    {
+      "trait_type": "Background Rarity",
+      "value": "Uncommon"
+    },
+    {
+      "trait_type": "Eyes",
+      "value": "asymmetric eyes \u2014 one red one blue cybernetic"
+    },
+    {
+      "trait_type": "Eyes Rarity",
+      "value": "Rare"
+    },
+    {
+      "trait_type": "Outfit",
+      "value": "utility vest covered in small pouches and cables"
+    },
+    {
+      "trait_type": "Outfit Rarity",
+      "value": "Uncommon"
+    },
+    {
+      "trait_type": "Headgear",
+      "value": "tech-enhanced dark hood with illuminated trim"
+    },
+    {
+      "trait_type": "Headgear Rarity",
+      "value": "Rare"
+    },
+    {
+      "trait_type": "Held Item",
+      "value": "holding a small IoT sensor device emitting signals"
+    },
+    {
+      "trait_type": "Held Item Rarity",
+      "value": "Rare"
+    },
+    {
+      "trait_type": "Aura",
+      "value": "gentle pulsing dark red underglow"
+    },
+    {
+      "trait_type": "Aura Rarity",
+      "value": "Uncommon"
+    },
+    {
+      "trait_type": "Overall Rarity",
+      "value": "Epic"
+    },
+    {
+      "trait_type": "Rarity Score",
+      "value": 2.5
+    }
+  ],
+  "properties": {
+    "token_id": 607,
+    "collection": "fry.farm Genesis",
+    "rarity_score": 2.5,
+    "overall_rarity": "Epic"
+  }
+}

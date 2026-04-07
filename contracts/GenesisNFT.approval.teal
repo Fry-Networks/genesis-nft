@@ -1,0 +1,1466 @@
+#pragma version 11
+#pragma typetrack false
+
+// algopy.arc4.ARC4Contract.approval_program() -> uint64:
+main:
+    intcblock 1 0 8 32
+    bytecblock "admin" 0x151f7c75 0x6f 0x62 "treasury" "total_minted" "mint_price" "mint_asset_id" "base_uri" "paused" 0x00 0x61 "max_supply" "royalty_bps" 0x3cd801eb
+    // genesis_nft.py:41
+    // class GenesisNFT(ARC4Contract):
+    txn NumAppArgs
+    bz main_bare_routing@30
+    txn OnCompletion
+    !
+    assert
+    txn ApplicationID
+    bz main_create_NoOp@26
+    pushbytess 0xd65b46d0 0xc8d5518d 0x47c97411 0x07506311 0x95c0d9b4 0x217adc3d 0x4e22a3ba 0x9b4aead4 0x2146755f 0x7134395f 0x43be37b5 0xb3de272c 0x4e02affd 0x534e6418 0x775c04ef 0x70246938 0x1e257c5e 0xed533f28 0xa6263b72 // method "mint(axfer)uint64", method "arc72_ownerOf(uint64)address", method "arc72_totalSupply()uint64", method "arc72_balanceOf(address)uint64", method "arc72_tokenURI(uint64)string", method "arc72_isApprovedForAll(address,address)bool", method "supportsInterface(byte[4])bool", method "arc72_transferFrom(address,address,uint64)void", method "arc72_approve(address,uint64)void", method "arc72_setApprovalForAll(address,bool)void", method "royalty_info(uint64,uint64)(address,uint64)", method "admin_pause(uint64)void", method "admin_set_base_uri(string)void", method "admin_set_treasury(address)void", method "admin_set_mint_price(uint64)void", method "admin_opt_in(uint64)void", method "admin_withdraw(uint64,uint64,address)void", method "admin_withdraw_algo(uint64,address)void", method "admin_set_admin(address)void"
+    txna ApplicationArgs 0
+    match mint arc72_ownerOf arc72_totalSupply arc72_balanceOf arc72_tokenURI arc72_isApprovedForAll supportsInterface arc72_transferFrom arc72_approve arc72_setApprovalForAll royalty_info admin_pause admin_set_base_uri admin_set_treasury admin_set_mint_price admin_opt_in admin_withdraw admin_withdraw_algo admin_set_admin
+    err
+
+main_create_NoOp@26:
+    // genesis_nft.py:41
+    // class GenesisNFT(ARC4Contract):
+    pushbytes 0x7744a305 // method "create(address,address,uint64,uint64,uint64,string,uint64)void"
+    txna ApplicationArgs 0
+    match create
+    err
+
+main_bare_routing@30:
+    // genesis_nft.py:41
+    // class GenesisNFT(ARC4Contract):
+    pushints 4 5 // UpdateApplication, DeleteApplication
+    txn OnCompletion
+    match main_update@31 main_delete@32
+    err
+
+main_delete@32:
+    // genesis_nft.py:94
+    // @arc4.baremethod(allow_actions=["DeleteApplication"])
+    txn ApplicationID
+    assert
+    // genesis_nft.py:96
+    // assert Txn.sender == self.admin.value, "Only admin"
+    txn Sender
+    intc_1 // 0
+    bytec_0 // "admin"
+    app_global_get_ex
+    assert // check self.admin exists
+    ==
+    assert // Only admin
+    // genesis_nft.py:94
+    // @arc4.baremethod(allow_actions=["DeleteApplication"])
+    intc_0 // 1
+    return
+
+main_update@31:
+    // genesis_nft.py:90
+    // @arc4.baremethod(allow_actions=["UpdateApplication"])
+    txn ApplicationID
+    assert
+    // genesis_nft.py:92
+    // assert Txn.sender == self.admin.value, "Only admin"
+    txn Sender
+    intc_1 // 0
+    bytec_0 // "admin"
+    app_global_get_ex
+    assert // check self.admin exists
+    ==
+    assert // Only admin
+    // genesis_nft.py:90
+    // @arc4.baremethod(allow_actions=["UpdateApplication"])
+    intc_0 // 1
+    return
+
+
+// genesis_nft.GenesisNFT.create[routing]() -> void:
+create:
+    // genesis_nft.py:68
+    // @arc4.abimethod(create="require")
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_3 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    txna ApplicationArgs 2
+    dup
+    len
+    intc_3 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    txna ApplicationArgs 3
+    dup
+    len
+    intc_2 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    txna ApplicationArgs 4
+    dup
+    len
+    intc_2 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    txna ApplicationArgs 5
+    dup
+    len
+    intc_2 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    txna ApplicationArgs 6
+    dup
+    intc_1 // 0
+    extract_uint16 // on error: invalid array length header
+    pushint 2
+    +
+    dig 1
+    len
+    ==
+    assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
+    txna ApplicationArgs 7
+    dup
+    len
+    intc_2 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    // genesis_nft.py:79
+    // self.admin.value = admin.native
+    bytec_0 // "admin"
+    uncover 7
+    app_global_put
+    // genesis_nft.py:80
+    // self.treasury.value = treasury.native
+    bytec 4 // "treasury"
+    uncover 6
+    app_global_put
+    // genesis_nft.py:81
+    // self.mint_price.value = mint_price.as_uint64()
+    uncover 4
+    btoi
+    bytec 6 // "mint_price"
+    swap
+    app_global_put
+    // genesis_nft.py:82
+    // self.max_supply.value = max_supply.as_uint64()
+    uncover 3
+    btoi
+    bytec 12 // "max_supply"
+    swap
+    app_global_put
+    // genesis_nft.py:83
+    // self.mint_asset_id.value = mint_asset_id.as_uint64()
+    uncover 2
+    btoi
+    bytec 7 // "mint_asset_id"
+    swap
+    app_global_put
+    // genesis_nft.py:84
+    // self.base_uri.value = base_uri.native.bytes
+    swap
+    extract 2 0
+    bytec 8 // "base_uri"
+    swap
+    app_global_put
+    // genesis_nft.py:85
+    // assert royalty_bps.as_uint64() <= UInt64(10000), "Royalty cannot exceed 10000 bps"
+    btoi
+    dup
+    pushint 10000
+    <=
+    assert // Royalty cannot exceed 10000 bps
+    // genesis_nft.py:86
+    // self.royalty_bps.value = royalty_bps.as_uint64()
+    bytec 13 // "royalty_bps"
+    swap
+    app_global_put
+    // genesis_nft.py:87
+    // self.paused.value = UInt64(0)
+    bytec 9 // "paused"
+    intc_1 // 0
+    app_global_put
+    // genesis_nft.py:88
+    // self.total_minted.value = UInt64(0)
+    bytec 5 // "total_minted"
+    intc_1 // 0
+    app_global_put
+    // genesis_nft.py:68
+    // @arc4.abimethod(create="require")
+    intc_0 // 1
+    return
+
+
+// genesis_nft.GenesisNFT.mint[routing]() -> void:
+mint:
+    // genesis_nft.py:100
+    // @arc4.abimethod
+    txn GroupIndex
+    intc_0 // 1
+    -
+    dup
+    gtxns TypeEnum
+    pushint 4 // axfer
+    ==
+    assert // transaction type is axfer
+    // genesis_nft.py:102
+    // assert self.paused.value == UInt64(0), "Minting is paused"
+    intc_1 // 0
+    bytec 9 // "paused"
+    app_global_get_ex
+    assert // check self.paused exists
+    !
+    assert // Minting is paused
+    // genesis_nft.py:103
+    // assert self.total_minted.value < self.max_supply.value, "Max supply reached"
+    intc_1 // 0
+    bytec 5 // "total_minted"
+    app_global_get_ex
+    assert // check self.total_minted exists
+    intc_1 // 0
+    bytec 12 // "max_supply"
+    app_global_get_ex
+    assert // check self.max_supply exists
+    dig 1
+    >
+    assert // Max supply reached
+    // genesis_nft.py:104
+    // assert payment.xfer_asset.id == self.mint_asset_id.value, "Wrong asset"
+    dig 1
+    gtxns XferAsset
+    intc_1 // 0
+    bytec 7 // "mint_asset_id"
+    app_global_get_ex
+    assert // check self.mint_asset_id exists
+    ==
+    assert // Wrong asset
+    // genesis_nft.py:105
+    // assert payment.asset_amount == self.mint_price.value, "Payment must equal mint price"
+    dig 1
+    gtxns AssetAmount
+    dup
+    cover 3
+    intc_1 // 0
+    bytec 6 // "mint_price"
+    app_global_get_ex
+    assert // check self.mint_price exists
+    ==
+    assert // Payment must equal mint price
+    // genesis_nft.py:106
+    // assert payment.sender == Txn.sender, "Payment sender must be caller"
+    dig 1
+    gtxns Sender
+    txn Sender
+    ==
+    assert // Payment sender must be caller
+    // genesis_nft.py:108
+    // payment.asset_receiver == Global.current_application_address
+    swap
+    gtxns AssetReceiver
+    global CurrentApplicationAddress
+    ==
+    // genesis_nft.py:107-109
+    // assert (
+    //     payment.asset_receiver == Global.current_application_address
+    // ), "Wrong receiver"
+    assert // Wrong receiver
+    // genesis_nft.py:111-112
+    // # Assign 1-indexed token ID
+    // token_id = self.total_minted.value + UInt64(1)
+    intc_0 // 1
+    +
+    // genesis_nft.py:113
+    // self.total_minted.value = token_id
+    bytec 5 // "total_minted"
+    dig 1
+    app_global_put
+    // genesis_nft.py:115-116
+    // # Record ownership
+    // self.owners[token_id] = Txn.sender
+    txn Sender
+    swap
+    itob
+    dup
+    cover 2
+    bytec_2 // 0x6f
+    swap
+    concat
+    swap
+    box_put
+    // genesis_nft.py:117
+    // current_balance, exists = self.balances.maybe(Txn.sender)
+    bytec_3 // 0x62
+    txn Sender
+    concat
+    box_get
+    swap
+    btoi
+    swap
+    // genesis_nft.py:118
+    // if exists:
+    bz mint_else_body@3
+    // genesis_nft.py:119
+    // self.balances[Txn.sender] = current_balance + UInt64(1)
+    dup
+    intc_0 // 1
+    +
+    bytec_3 // 0x62
+    txn Sender
+    concat
+    swap
+    itob
+    box_put
+
+mint_after_if_else@4:
+    // genesis_nft.py:123-129
+    // # Forward USDC to treasury
+    // itxn.AssetTransfer(
+    //     xfer_asset=self.mint_asset_id.value,
+    //     asset_amount=payment.asset_amount,
+    //     asset_receiver=self.treasury.value,
+    //     fee=0,
+    // ).submit()
+    itxn_begin
+    // genesis_nft.py:125
+    // xfer_asset=self.mint_asset_id.value,
+    intc_1 // 0
+    bytec 7 // "mint_asset_id"
+    app_global_get_ex
+    assert // check self.mint_asset_id exists
+    // genesis_nft.py:127
+    // asset_receiver=self.treasury.value,
+    intc_1 // 0
+    bytec 4 // "treasury"
+    app_global_get_ex
+    assert // check self.treasury exists
+    itxn_field AssetReceiver
+    dig 3
+    itxn_field AssetAmount
+    itxn_field XferAsset
+    // genesis_nft.py:123-124
+    // # Forward USDC to treasury
+    // itxn.AssetTransfer(
+    pushint 4 // axfer
+    itxn_field TypeEnum
+    // genesis_nft.py:128
+    // fee=0,
+    intc_1 // 0
+    itxn_field Fee
+    // genesis_nft.py:123-129
+    // # Forward USDC to treasury
+    // itxn.AssetTransfer(
+    //     xfer_asset=self.mint_asset_id.value,
+    //     asset_amount=payment.asset_amount,
+    //     asset_receiver=self.treasury.value,
+    //     fee=0,
+    // ).submit()
+    itxn_submit
+    // genesis_nft.py:134
+    // arc4.Address(Global.zero_address),
+    global ZeroAddress
+    // genesis_nft.py:135
+    // arc4.Address(Txn.sender),
+    txn Sender
+    // genesis_nft.py:131-137
+    // # Emit ARC-72 transfer event (mint = from zero address)
+    // arc4.emit(
+    //     "arc72_Transfer(address,address,uint64)",
+    //     arc4.Address(Global.zero_address),
+    //     arc4.Address(Txn.sender),
+    //     arc4.UInt64(token_id),
+    // )
+    concat
+    dig 2
+    dup
+    cover 2
+    concat
+    bytec 14 // method "arc72_Transfer(address,address,uint64)"
+    swap
+    concat
+    log
+    // genesis_nft.py:100
+    // @arc4.abimethod
+    bytec_1 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_0 // 1
+    return
+
+mint_else_body@3:
+    // genesis_nft.py:121
+    // self.balances[Txn.sender] = UInt64(1)
+    bytec_3 // 0x62
+    txn Sender
+    concat
+    intc_0 // 1
+    itob
+    box_put
+    b mint_after_if_else@4
+
+
+// genesis_nft.GenesisNFT.arc72_ownerOf[routing]() -> void:
+arc72_ownerOf:
+    // genesis_nft.py:143
+    // @arc4.abimethod(readonly=True)
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_2 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    // genesis_nft.py:145
+    // tid = token_id.as_uint64()
+    btoi
+    // genesis_nft.py:146
+    // assert tid in self.owners, "Token does not exist"
+    itob
+    bytec_2 // 0x6f
+    swap
+    concat
+    dup
+    box_len
+    bury 1
+    assert // Token does not exist
+    // genesis_nft.py:147
+    // return arc4.Address(self.owners[tid])
+    box_get
+    pop
+    // genesis_nft.py:143
+    // @arc4.abimethod(readonly=True)
+    bytec_1 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_0 // 1
+    return
+
+
+// genesis_nft.GenesisNFT.arc72_totalSupply[routing]() -> void:
+arc72_totalSupply:
+    // genesis_nft.py:151
+    // return arc4.UInt64(self.total_minted.value)
+    intc_1 // 0
+    bytec 5 // "total_minted"
+    app_global_get_ex
+    assert // check self.total_minted exists
+    itob
+    // genesis_nft.py:149
+    // @arc4.abimethod(readonly=True)
+    bytec_1 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_0 // 1
+    return
+
+
+// genesis_nft.GenesisNFT.arc72_balanceOf[routing]() -> void:
+arc72_balanceOf:
+    // genesis_nft.py:153
+    // @arc4.abimethod(readonly=True)
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_3 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    // genesis_nft.py:155
+    // balance, exists = self.balances.maybe(owner.native)
+    bytec_3 // 0x62
+    swap
+    concat
+    box_get
+    swap
+    btoi
+    swap
+    // genesis_nft.py:156
+    // if exists:
+    bz arc72_balanceOf_after_if_else@3
+    // genesis_nft.py:157
+    // return arc4.UInt64(balance)
+    dup
+    itob
+
+arc72_balanceOf_after_inlined_genesis_nft.GenesisNFT.arc72_balanceOf@4:
+    // genesis_nft.py:153
+    // @arc4.abimethod(readonly=True)
+    bytec_1 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_0 // 1
+    return
+
+arc72_balanceOf_after_if_else@3:
+    // genesis_nft.py:158
+    // return arc4.UInt64(0)
+    pushbytes 0x0000000000000000
+    // genesis_nft.py:153
+    // @arc4.abimethod(readonly=True)
+    b arc72_balanceOf_after_inlined_genesis_nft.GenesisNFT.arc72_balanceOf@4
+
+
+// genesis_nft.GenesisNFT.arc72_tokenURI[routing]() -> void:
+arc72_tokenURI:
+    intc_1 // 0
+    pushbytes ""
+    // genesis_nft.py:160
+    // @arc4.abimethod(readonly=True)
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_2 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    // genesis_nft.py:162
+    // tid = token_id.as_uint64()
+    btoi
+    dupn 2
+    // genesis_nft.py:163
+    // assert tid in self.owners, "Token does not exist"
+    itob
+    bytec_2 // 0x6f
+    swap
+    concat
+    box_len
+    bury 1
+    assert // Token does not exist
+    // genesis_nft.py:164
+    // uri = String.from_bytes(self.base_uri.value) + uint64_to_string(tid) + ".json"
+    intc_1 // 0
+    bytec 8 // "base_uri"
+    app_global_get_ex
+    swap
+    cover 2
+    assert // check self.base_uri exists
+    // genesis_nft.py:29
+    // if value == 0:
+    bnz arc72_tokenURI_after_if_else@3
+    // genesis_nft.py:30
+    // return String("0")
+    pushbytes "0"
+
+arc72_tokenURI_after_inlined_genesis_nft.uint64_to_string@7:
+    // genesis_nft.py:164
+    // uri = String.from_bytes(self.base_uri.value) + uint64_to_string(tid) + ".json"
+    dig 1
+    swap
+    concat
+    pushbytes ".json"
+    concat
+    // genesis_nft.py:165
+    // return arc4.String(uri)
+    dup
+    len
+    itob
+    extract 6 2
+    swap
+    concat
+    // genesis_nft.py:160
+    // @arc4.abimethod(readonly=True)
+    bytec_1 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_0 // 1
+    return
+
+arc72_tokenURI_after_if_else@3:
+    // genesis_nft.py:32
+    // result = Bytes(b"")
+    pushbytes 0x
+    bury 4
+    dig 1
+    bury 3
+
+arc72_tokenURI_while_top@4:
+    // genesis_nft.py:34
+    // while remaining > 0:
+    dig 2
+    bz arc72_tokenURI_after_while@6
+    // genesis_nft.py:35
+    // digit = remaining % UInt64(10)
+    dig 2
+    dup
+    pushint 10
+    %
+    // genesis_nft.py:36
+    // remaining //= UInt64(10)
+    swap
+    pushint 10
+    /
+    bury 4
+    // genesis_nft.py:31
+    // digits = Bytes(b"0123456789")
+    pushbytes 0x30313233343536373839
+    // genesis_nft.py:37
+    // result = op.extract(digits, digit, 1) + result
+    swap
+    intc_0 // 1
+    extract3
+    dig 4
+    concat
+    bury 4
+    b arc72_tokenURI_while_top@4
+
+arc72_tokenURI_after_while@6:
+    dig 3
+    // genesis_nft.py:164
+    // uri = String.from_bytes(self.base_uri.value) + uint64_to_string(tid) + ".json"
+    b arc72_tokenURI_after_inlined_genesis_nft.uint64_to_string@7
+
+
+// genesis_nft.GenesisNFT.arc72_isApprovedForAll[routing]() -> void:
+arc72_isApprovedForAll:
+    // genesis_nft.py:167
+    // @arc4.abimethod(readonly=True)
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_3 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    txna ApplicationArgs 2
+    dup
+    len
+    intc_3 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    // genesis_nft.py:171
+    // op_key = owner.native.bytes + operator.native.bytes
+    concat
+    // genesis_nft.py:172
+    // op_val, exists = self.operators.maybe(op_key)
+    box_get
+    swap
+    btoi
+    swap
+    // genesis_nft.py:173
+    // if exists:
+    bz arc72_isApprovedForAll_after_if_else@3
+    // genesis_nft.py:174
+    // return arc4.Bool(op_val == UInt64(1))
+    dup
+    intc_0 // 1
+    ==
+    bytec 10 // 0x00
+    intc_1 // 0
+    uncover 2
+    setbit
+
+arc72_isApprovedForAll_after_inlined_genesis_nft.GenesisNFT.arc72_isApprovedForAll@4:
+    // genesis_nft.py:167
+    // @arc4.abimethod(readonly=True)
+    bytec_1 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_0 // 1
+    return
+
+arc72_isApprovedForAll_after_if_else@3:
+    // genesis_nft.py:175
+    // return arc4.Bool(False)
+    bytec 10 // 0x00
+    // genesis_nft.py:167
+    // @arc4.abimethod(readonly=True)
+    b arc72_isApprovedForAll_after_inlined_genesis_nft.GenesisNFT.arc72_isApprovedForAll@4
+
+
+// genesis_nft.GenesisNFT.supportsInterface[routing]() -> void:
+supportsInterface:
+    // genesis_nft.py:177
+    // @arc4.abimethod(readonly=True)
+    txna ApplicationArgs 1
+    dup
+    len
+    pushint 4
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 4>
+    // genesis_nft.py:182
+    // return arc4.Bool(interface_id.bytes == Bytes.from_hex("53f02a40"))
+    pushbytes 0x53f02a40
+    ==
+    bytec 10 // 0x00
+    intc_1 // 0
+    uncover 2
+    setbit
+    // genesis_nft.py:177
+    // @arc4.abimethod(readonly=True)
+    bytec_1 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_0 // 1
+    return
+
+
+// genesis_nft.GenesisNFT.arc72_transferFrom[routing]() -> void:
+arc72_transferFrom:
+    intc_1 // 0
+    dup
+    pushbytes ""
+    dup
+    // genesis_nft.py:186
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dupn 2
+    len
+    intc_3 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    txna ApplicationArgs 2
+    dup
+    cover 2
+    dup
+    len
+    intc_3 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    txna ApplicationArgs 3
+    dup
+    cover 3
+    dup
+    len
+    intc_2 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    // genesis_nft.py:193
+    // tid = token_id.as_uint64()
+    btoi
+    // genesis_nft.py:196
+    // assert to_account != Global.zero_address, "Cannot transfer to zero address"
+    global ZeroAddress
+    uncover 2
+    !=
+    assert // Cannot transfer to zero address
+    // genesis_nft.py:198-199
+    // # Verify ownership
+    // owner = self.owners[tid]
+    itob
+    dup
+    cover 2
+    bytec_2 // 0x6f
+    swap
+    concat
+    dup
+    cover 2
+    box_get
+    assert // check self.owners entry exists
+    // genesis_nft.py:200
+    // assert owner == from_account, "from_ is not the owner"
+    dup
+    uncover 2
+    ==
+    assert // from_ is not the owner
+    // genesis_nft.py:202-203
+    // # Check authorization: owner OR approved OR operator
+    // is_authorized = Txn.sender == owner
+    txn Sender
+    ==
+    dup
+    // genesis_nft.py:205
+    // if not is_authorized:
+    bnz arc72_transferFrom_after_if_else@5
+    // genesis_nft.py:206
+    // approved_addr, has_approval = self.approved.maybe(tid)
+    bytec 11 // 0x61
+    dig 3
+    concat
+    box_get
+    swap
+    bury 11
+    // genesis_nft.py:207
+    // if has_approval:
+    bz arc72_transferFrom_after_if_else@5
+    // genesis_nft.py:208
+    // is_authorized = Txn.sender == approved_addr
+    txn Sender
+    dig 10
+    ==
+    bury 1
+
+arc72_transferFrom_after_if_else@5:
+    // genesis_nft.py:210
+    // if not is_authorized:
+    dup
+    bnz arc72_transferFrom_after_if_else@9
+    // genesis_nft.py:211
+    // op_key = from_account.bytes + Txn.sender.bytes
+    dig 5
+    txn Sender
+    concat
+    // genesis_nft.py:212
+    // op_val, op_exists = self.operators.maybe(op_key)
+    box_get
+    swap
+    btoi
+    bury 9
+    // genesis_nft.py:213
+    // if op_exists:
+    bz arc72_transferFrom_after_if_else@9
+    // genesis_nft.py:214
+    // is_authorized = op_val == UInt64(1)
+    dig 7
+    intc_0 // 1
+    ==
+    bury 1
+
+arc72_transferFrom_after_if_else@9:
+    // genesis_nft.py:216
+    // assert is_authorized, "Not authorized"
+    dup
+    assert // Not authorized
+    // genesis_nft.py:218-219
+    // # Transfer ownership
+    // self.owners[tid] = to_account
+    dig 1
+    dig 5
+    box_put
+    // genesis_nft.py:221-222
+    // # Clear any existing approval
+    // if tid in self.approved:
+    bytec 11 // 0x61
+    dig 3
+    concat
+    dup
+    bury 10
+    box_len
+    bury 1
+    bz arc72_transferFrom_after_if_else@11
+    // genesis_nft.py:223
+    // del self.approved[tid]
+    dig 8
+    box_del
+    pop
+
+arc72_transferFrom_after_if_else@11:
+    // genesis_nft.py:225-226
+    // # Update balances
+    // from_balance = self.balances[from_account]
+    bytec_3 // 0x62
+    dig 6
+    concat
+    dup
+    box_get
+    assert // check self.balances entry exists
+    btoi
+    // genesis_nft.py:227
+    // self.balances[from_account] = from_balance - UInt64(1)
+    intc_0 // 1
+    -
+    itob
+    box_put
+    // genesis_nft.py:229
+    // to_balance, to_exists = self.balances.maybe(to_account)
+    bytec_3 // 0x62
+    dig 5
+    concat
+    dup
+    box_get
+    swap
+    btoi
+    bury 9
+    // genesis_nft.py:230
+    // if to_exists:
+    bz arc72_transferFrom_else_body@13
+    // genesis_nft.py:231
+    // self.balances[to_account] = to_balance + UInt64(1)
+    dig 7
+    intc_0 // 1
+    +
+    itob
+    box_put
+
+arc72_transferFrom_after_if_else@14:
+    // genesis_nft.py:235-240
+    // arc4.emit(
+    //     "arc72_Transfer(address,address,uint64)",
+    //     from_,
+    //     to,
+    //     token_id,
+    // )
+    dig 5
+    dig 5
+    concat
+    dig 4
+    concat
+    bytec 14 // method "arc72_Transfer(address,address,uint64)"
+    swap
+    concat
+    log
+    // genesis_nft.py:186
+    // @arc4.abimethod
+    intc_0 // 1
+    return
+
+arc72_transferFrom_else_body@13:
+    // genesis_nft.py:233
+    // self.balances[to_account] = UInt64(1)
+    intc_0 // 1
+    itob
+    box_put
+    b arc72_transferFrom_after_if_else@14
+
+
+// genesis_nft.GenesisNFT.arc72_approve[routing]() -> void:
+arc72_approve:
+    // genesis_nft.py:242
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_3 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    txna ApplicationArgs 2
+    dup
+    len
+    intc_2 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    // genesis_nft.py:246
+    // tid = token_id.as_uint64()
+    dup
+    btoi
+    // genesis_nft.py:247
+    // owner = self.owners[tid]
+    itob
+    bytec_2 // 0x6f
+    dig 1
+    concat
+    box_get
+    assert // check self.owners entry exists
+    // genesis_nft.py:248
+    // assert Txn.sender == owner, "Only owner can approve"
+    txn Sender
+    dig 1
+    ==
+    assert // Only owner can approve
+    // genesis_nft.py:250
+    // self.approved[tid] = approved_addr.native
+    bytec 11 // 0x61
+    uncover 2
+    concat
+    dig 3
+    box_put
+    // genesis_nft.py:252-257
+    // arc4.emit(
+    //     "arc72_Approval(address,address,uint64)",
+    //     arc4.Address(owner),
+    //     approved_addr,
+    //     token_id,
+    // )
+    uncover 2
+    concat
+    swap
+    concat
+    pushbytes 0xa8621a3a // method "arc72_Approval(address,address,uint64)"
+    swap
+    concat
+    log
+    // genesis_nft.py:242
+    // @arc4.abimethod
+    intc_0 // 1
+    return
+
+
+// genesis_nft.GenesisNFT.arc72_setApprovalForAll[routing]() -> void:
+arc72_setApprovalForAll:
+    // genesis_nft.py:259
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dupn 2
+    len
+    intc_3 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    txna ApplicationArgs 2
+    dup
+    cover 2
+    dup
+    len
+    intc_0 // 1
+    ==
+    assert // invalid number of bytes for arc4.bool
+    // genesis_nft.py:263
+    // op_key = Txn.sender.bytes + operator.native.bytes
+    txn Sender
+    uncover 2
+    concat
+    swap
+    // genesis_nft.py:264
+    // if is_approved.native:
+    intc_1 // 0
+    getbit
+    bz arc72_setApprovalForAll_else_body@3
+    // genesis_nft.py:265
+    // self.operators[op_key] = UInt64(1)
+    intc_0 // 1
+    itob
+    dig 1
+    swap
+    box_put
+
+arc72_setApprovalForAll_after_if_else@6:
+    // genesis_nft.py:272
+    // arc4.Address(Txn.sender),
+    txn Sender
+    // genesis_nft.py:270-275
+    // arc4.emit(
+    //     "arc72_ApprovalForAll(address,address,bool)",
+    //     arc4.Address(Txn.sender),
+    //     operator,
+    //     is_approved,
+    // )
+    dig 3
+    concat
+    dig 2
+    concat
+    pushbytes 0x4c4debab // method "arc72_ApprovalForAll(address,address,bool)"
+    swap
+    concat
+    log
+    // genesis_nft.py:259
+    // @arc4.abimethod
+    intc_0 // 1
+    return
+
+arc72_setApprovalForAll_else_body@3:
+    // genesis_nft.py:267
+    // if op_key in self.operators:
+    dup
+    box_len
+    bury 1
+    bz arc72_setApprovalForAll_after_if_else@6
+    // genesis_nft.py:268
+    // del self.operators[op_key]
+    dup
+    box_del
+    pop
+    b arc72_setApprovalForAll_after_if_else@6
+
+
+// genesis_nft.GenesisNFT.royalty_info[routing]() -> void:
+royalty_info:
+    // genesis_nft.py:279
+    // @arc4.abimethod(readonly=True)
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_2 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    txna ApplicationArgs 2
+    dup
+    len
+    intc_2 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    // genesis_nft.py:283
+    // tid = token_id.as_uint64()
+    swap
+    btoi
+    // genesis_nft.py:284
+    // assert tid in self.owners, "Token does not exist"
+    itob
+    bytec_2 // 0x6f
+    swap
+    concat
+    box_len
+    bury 1
+    assert // Token does not exist
+    // genesis_nft.py:285
+    // price = sale_price.as_uint64()
+    btoi
+    // genesis_nft.py:286
+    // royalty_amount = price * self.royalty_bps.value // UInt64(10000)
+    intc_1 // 0
+    bytec 13 // "royalty_bps"
+    app_global_get_ex
+    assert // check self.royalty_bps exists
+    *
+    pushint 10000
+    /
+    // genesis_nft.py:289
+    // arc4.Address(self.treasury.value),
+    intc_1 // 0
+    bytec 4 // "treasury"
+    app_global_get_ex
+    assert // check self.treasury exists
+    // genesis_nft.py:290
+    // arc4.UInt64(royalty_amount),
+    swap
+    itob
+    // genesis_nft.py:287-292
+    // return arc4.Tuple(
+    //     (
+    //         arc4.Address(self.treasury.value),
+    //         arc4.UInt64(royalty_amount),
+    //     )
+    // )
+    concat
+    // genesis_nft.py:279
+    // @arc4.abimethod(readonly=True)
+    bytec_1 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_0 // 1
+    return
+
+
+// genesis_nft.GenesisNFT.admin_pause[routing]() -> void:
+admin_pause:
+    // genesis_nft.py:296
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_2 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    // genesis_nft.py:298
+    // assert Txn.sender == self.admin.value, "Only admin"
+    txn Sender
+    intc_1 // 0
+    bytec_0 // "admin"
+    app_global_get_ex
+    assert // check self.admin exists
+    ==
+    assert // Only admin
+    // genesis_nft.py:299
+    // assert new_paused.as_uint64() <= UInt64(1), "Pause value must be 0 or 1"
+    btoi
+    dup
+    intc_0 // 1
+    <=
+    assert // Pause value must be 0 or 1
+    // genesis_nft.py:300
+    // self.paused.value = new_paused.as_uint64()
+    bytec 9 // "paused"
+    swap
+    app_global_put
+    // genesis_nft.py:296
+    // @arc4.abimethod
+    intc_0 // 1
+    return
+
+
+// genesis_nft.GenesisNFT.admin_set_base_uri[routing]() -> void:
+admin_set_base_uri:
+    // genesis_nft.py:302
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    intc_1 // 0
+    extract_uint16 // on error: invalid array length header
+    pushint 2
+    +
+    dig 1
+    len
+    ==
+    assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
+    // genesis_nft.py:304
+    // assert Txn.sender == self.admin.value, "Only admin"
+    txn Sender
+    intc_1 // 0
+    bytec_0 // "admin"
+    app_global_get_ex
+    assert // check self.admin exists
+    ==
+    assert // Only admin
+    // genesis_nft.py:305
+    // self.base_uri.value = new_uri.native.bytes
+    extract 2 0
+    bytec 8 // "base_uri"
+    swap
+    app_global_put
+    // genesis_nft.py:302
+    // @arc4.abimethod
+    intc_0 // 1
+    return
+
+
+// genesis_nft.GenesisNFT.admin_set_treasury[routing]() -> void:
+admin_set_treasury:
+    // genesis_nft.py:307
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_3 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    // genesis_nft.py:309
+    // assert Txn.sender == self.admin.value, "Only admin"
+    txn Sender
+    intc_1 // 0
+    bytec_0 // "admin"
+    app_global_get_ex
+    assert // check self.admin exists
+    ==
+    assert // Only admin
+    // genesis_nft.py:310
+    // self.treasury.value = new_treasury.native
+    bytec 4 // "treasury"
+    swap
+    app_global_put
+    // genesis_nft.py:307
+    // @arc4.abimethod
+    intc_0 // 1
+    return
+
+
+// genesis_nft.GenesisNFT.admin_set_mint_price[routing]() -> void:
+admin_set_mint_price:
+    // genesis_nft.py:312
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_2 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    // genesis_nft.py:314
+    // assert Txn.sender == self.admin.value, "Only admin"
+    txn Sender
+    intc_1 // 0
+    bytec_0 // "admin"
+    app_global_get_ex
+    assert // check self.admin exists
+    ==
+    assert // Only admin
+    // genesis_nft.py:315
+    // self.mint_price.value = new_price.as_uint64()
+    btoi
+    bytec 6 // "mint_price"
+    swap
+    app_global_put
+    // genesis_nft.py:312
+    // @arc4.abimethod
+    intc_0 // 1
+    return
+
+
+// genesis_nft.GenesisNFT.admin_opt_in[routing]() -> void:
+admin_opt_in:
+    // genesis_nft.py:317
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_2 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    // genesis_nft.py:319
+    // assert Txn.sender == self.admin.value, "Only admin"
+    txn Sender
+    intc_1 // 0
+    bytec_0 // "admin"
+    app_global_get_ex
+    assert // check self.admin exists
+    ==
+    assert // Only admin
+    // genesis_nft.py:320-325
+    // itxn.AssetTransfer(
+    //     xfer_asset=asset_id.as_uint64(),
+    //     asset_amount=0,
+    //     asset_receiver=Global.current_application_address,
+    //     fee=0,
+    // ).submit()
+    itxn_begin
+    // genesis_nft.py:321
+    // xfer_asset=asset_id.as_uint64(),
+    btoi
+    // genesis_nft.py:323
+    // asset_receiver=Global.current_application_address,
+    global CurrentApplicationAddress
+    itxn_field AssetReceiver
+    // genesis_nft.py:322
+    // asset_amount=0,
+    intc_1 // 0
+    itxn_field AssetAmount
+    itxn_field XferAsset
+    // genesis_nft.py:320
+    // itxn.AssetTransfer(
+    pushint 4 // axfer
+    itxn_field TypeEnum
+    // genesis_nft.py:324
+    // fee=0,
+    intc_1 // 0
+    itxn_field Fee
+    // genesis_nft.py:320-325
+    // itxn.AssetTransfer(
+    //     xfer_asset=asset_id.as_uint64(),
+    //     asset_amount=0,
+    //     asset_receiver=Global.current_application_address,
+    //     fee=0,
+    // ).submit()
+    itxn_submit
+    // genesis_nft.py:317
+    // @arc4.abimethod
+    intc_0 // 1
+    return
+
+
+// genesis_nft.GenesisNFT.admin_withdraw[routing]() -> void:
+admin_withdraw:
+    // genesis_nft.py:327
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_2 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    txna ApplicationArgs 2
+    dup
+    len
+    intc_2 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    txna ApplicationArgs 3
+    dup
+    len
+    intc_3 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    // genesis_nft.py:331
+    // assert Txn.sender == self.admin.value, "Only admin"
+    txn Sender
+    intc_1 // 0
+    bytec_0 // "admin"
+    app_global_get_ex
+    assert // check self.admin exists
+    ==
+    assert // Only admin
+    // genesis_nft.py:332-337
+    // itxn.AssetTransfer(
+    //     xfer_asset=asset_id.as_uint64(),
+    //     asset_amount=amount.as_uint64(),
+    //     asset_receiver=receiver.native,
+    //     fee=0,
+    // ).submit()
+    itxn_begin
+    // genesis_nft.py:333
+    // xfer_asset=asset_id.as_uint64(),
+    uncover 2
+    btoi
+    // genesis_nft.py:334
+    // asset_amount=amount.as_uint64(),
+    uncover 2
+    btoi
+    uncover 2
+    itxn_field AssetReceiver
+    itxn_field AssetAmount
+    itxn_field XferAsset
+    // genesis_nft.py:332
+    // itxn.AssetTransfer(
+    pushint 4 // axfer
+    itxn_field TypeEnum
+    // genesis_nft.py:336
+    // fee=0,
+    intc_1 // 0
+    itxn_field Fee
+    // genesis_nft.py:332-337
+    // itxn.AssetTransfer(
+    //     xfer_asset=asset_id.as_uint64(),
+    //     asset_amount=amount.as_uint64(),
+    //     asset_receiver=receiver.native,
+    //     fee=0,
+    // ).submit()
+    itxn_submit
+    // genesis_nft.py:327
+    // @arc4.abimethod
+    intc_0 // 1
+    return
+
+
+// genesis_nft.GenesisNFT.admin_withdraw_algo[routing]() -> void:
+admin_withdraw_algo:
+    // genesis_nft.py:339
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_2 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    txna ApplicationArgs 2
+    dup
+    len
+    intc_3 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    // genesis_nft.py:341
+    // assert Txn.sender == self.admin.value, "Only admin"
+    txn Sender
+    intc_1 // 0
+    bytec_0 // "admin"
+    app_global_get_ex
+    assert // check self.admin exists
+    ==
+    assert // Only admin
+    // genesis_nft.py:342-346
+    // itxn.Payment(
+    //     receiver=receiver.native,
+    //     amount=amount.as_uint64(),
+    //     fee=0,
+    // ).submit()
+    itxn_begin
+    // genesis_nft.py:344
+    // amount=amount.as_uint64(),
+    swap
+    btoi
+    itxn_field Amount
+    itxn_field Receiver
+    // genesis_nft.py:342
+    // itxn.Payment(
+    intc_0 // pay
+    itxn_field TypeEnum
+    // genesis_nft.py:345
+    // fee=0,
+    intc_1 // 0
+    itxn_field Fee
+    // genesis_nft.py:342-346
+    // itxn.Payment(
+    //     receiver=receiver.native,
+    //     amount=amount.as_uint64(),
+    //     fee=0,
+    // ).submit()
+    itxn_submit
+    // genesis_nft.py:339
+    // @arc4.abimethod
+    intc_0 // 1
+    return
+
+
+// genesis_nft.GenesisNFT.admin_set_admin[routing]() -> void:
+admin_set_admin:
+    // genesis_nft.py:348
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_3 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    // genesis_nft.py:350
+    // assert Txn.sender == self.admin.value, "Only admin"
+    txn Sender
+    intc_1 // 0
+    bytec_0 // "admin"
+    app_global_get_ex
+    assert // check self.admin exists
+    ==
+    assert // Only admin
+    // genesis_nft.py:351
+    // self.admin.value = new_admin.native
+    bytec_0 // "admin"
+    swap
+    app_global_put
+    // genesis_nft.py:348
+    // @arc4.abimethod
+    intc_0 // 1
+    return
