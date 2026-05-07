@@ -1,6 +1,6 @@
 """fry.farm DistributionPool — monthly FRY distributions to Genesis NFT holders.
 
-Accumulates FRY from the FeeRouter's 10% split. Admin starts epochs;
+Accumulates FRY from the FeeRouter's 10% split. Automation wallet starts epochs;
 holders pull their share by calling claim(token_id). Ownership is verified
 on-chain via a cross-contract call to the GenesisNFT contract. Each
 (epoch, token_id) pair can be claimed exactly once — tracked via BoxMap.
@@ -34,6 +34,7 @@ class DistributionPool(ARC4Contract):
         self.epoch_total = GlobalState(UInt64)
         self.epoch_per_nft = GlobalState(UInt64)
         self.epoch_claimed_count = GlobalState(UInt64)
+        self.automation_address = GlobalState(Account)
 
         # Claim tracking: key = epoch(8 BE) || token_id(8 BE), value = 1 if claimed
         self.claimed = BoxMap(Bytes, UInt64, key_prefix=b"c")
@@ -70,34 +71,31 @@ class DistributionPool(ARC4Contract):
     # ── Epoch management ──────────────────────────────────────────────────
 
     @arc4.abimethod
-    def start_epoch(self, total_amount: arc4.UInt64) -> arc4.UInt64:
-        assert Txn.sender == self.admin.value, "Only admin"
+    def start_epoch(self) -> arc4.UInt64:
+        assert Txn.sender == self.automation_address.value, "Only automation"
         assert self.epoch_active.value == UInt64(0), "Epoch already active"
 
-        total_amt = total_amount.as_uint64()
-        assert total_amt > UInt64(0), "Amount must be positive"
-
-        # Verify contract has enough FRY
+        # Auto-read pool FRY balance
         balance, has_asset = op.AssetHoldingGet.asset_balance(
             Global.current_application_address, self.fry_asset_id.value
         )
         assert has_asset, "Not opted into FRY"
-        assert balance >= total_amt, "Insufficient FRY balance"
+        assert balance > UInt64(0), "No FRY balance"
 
-        per_nft = total_amt // self.total_supply.value
-        assert per_nft > UInt64(0), "Amount too small for supply"
+        per_nft = balance // self.total_supply.value
+        assert per_nft > UInt64(0), "Balance too small for supply"
 
         new_epoch = self.current_epoch.value + UInt64(1)
         self.current_epoch.value = new_epoch
         self.epoch_active.value = UInt64(1)
-        self.epoch_total.value = total_amt
+        self.epoch_total.value = balance
         self.epoch_per_nft.value = per_nft
         self.epoch_claimed_count.value = UInt64(0)
 
         arc4.emit(
             "EpochStarted(uint64,uint64,uint64)",
             arc4.UInt64(new_epoch),
-            total_amount,
+            arc4.UInt64(balance),
             arc4.UInt64(per_nft),
         )
 
@@ -152,8 +150,8 @@ class DistributionPool(ARC4Contract):
 
     # NOTE: If holders have already claimed before cancel, that FRY
     # is legitimately distributed and not returned to the pool.
-    # When starting the next epoch, use the current pool FRY balance
-    # (start_epoch validates balance >= total_amount).
+    # When starting the next epoch, the automation wallet triggers
+    # start_epoch which uses the current pool FRY balance.
     @arc4.abimethod
     def cancel_epoch(self) -> None:
         assert Txn.sender == self.admin.value, "Only admin"
@@ -258,3 +256,8 @@ class DistributionPool(ARC4Contract):
     def admin_set_admin(self, new_admin: arc4.Address) -> None:
         assert Txn.sender == self.admin.value, "Only admin"
         self.admin.value = new_admin.native
+
+    @arc4.abimethod
+    def admin_set_automation(self, automation: arc4.Address) -> None:
+        assert Txn.sender == self.admin.value, "Only admin"
+        self.automation_address.value = automation.native

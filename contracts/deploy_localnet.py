@@ -353,7 +353,7 @@ try:
         sp=sp_with_fee(algod_client),
         signer=admin_signer,
         method_args=[fry_asa_id, genesis_nft_app_id, 1000],
-        global_schema=transaction.StateSchema(num_uints=8, num_byte_slices=1),
+        global_schema=transaction.StateSchema(num_uints=8, num_byte_slices=2),
         local_schema=transaction.StateSchema(num_uints=0, num_byte_slices=0),
         extra_pages=3,
         approval_program=approval_program,
@@ -402,6 +402,32 @@ try:
     )
     atc.execute(algod_client, 4)
     print(f"  FeeRouter pool updated to DistributionPool address")
+
+    # Create automation wallet for epoch triggering
+    automation_private_key, automation_address = account.generate_account()
+    automation_signer = AccountTransactionSigner(automation_private_key)
+
+    # Fund automation wallet with 10 ALGO
+    sp = algod_client.suggested_params()
+    fund_txn = transaction.PaymentTxn(admin_address, sp, automation_address, 10_000_000)
+    signed = fund_txn.sign(admin_private_key)
+    txid = algod_client.send_transaction(signed)
+    transaction.wait_for_confirmation(algod_client, txid, 4)
+
+    # Admin sets automation address on DistributionPool
+    set_auto_method = abi.Method.from_signature("admin_set_automation(address)void")
+    atc = AtomicTransactionComposer()
+    atc.add_method_call(
+        app_id=dist_pool_app_id,
+        method=set_auto_method,
+        sender=admin_address,
+        sp=sp_with_fee(algod_client),
+        signer=admin_signer,
+        method_args=[automation_address],
+    )
+    atc.execute(algod_client, 4)
+    print(f"  Automation wallet: {automation_address}")
+    print(f"  admin_set_automation called successfully")
 
 except Exception:
     traceback.print_exc()
@@ -649,15 +675,15 @@ try:
         raise RuntimeError("DistributionPool not deployed")
 
     # Start epoch: 10M total over 1000-supply = 10000 per NFT
-    start_method = abi.Method.from_signature("start_epoch(uint64)uint64")
+    start_method = abi.Method.from_signature("start_epoch()uint64")
     atc = AtomicTransactionComposer()
     atc.add_method_call(
         app_id=dist_pool_app_id,
         method=start_method,
-        sender=admin_address,
+        sender=automation_address,
         sp=sp_with_fee(algod_client),
-        signer=admin_signer,
-        method_args=[10_000_000],
+        signer=automation_signer,
+        method_args=[],
         foreign_assets=[fry_asa_id],
     )
     atc_result = atc.execute(algod_client, 4)

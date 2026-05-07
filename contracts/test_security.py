@@ -94,12 +94,15 @@ user1_pk, user1_address = account.generate_account()
 user1_signer = AccountTransactionSigner(user1_pk)
 user2_pk, user2_address = account.generate_account()
 user2_signer = AccountTransactionSigner(user2_pk)
+automation_pk, automation_address = account.generate_account()
+automation_signer = AccountTransactionSigner(automation_pk)
 print(f"  User1 (holder):   {user1_address[:10]}...")
 print(f"  User2 (attacker): {user2_address[:10]}...")
+print(f"  Automation:       {automation_address[:10]}...")
 
 # Fund users with 100 ALGO each
 sp = algod_client.suggested_params()
-for addr in (user1_address, user2_address):
+for addr in (user1_address, user2_address, automation_address):
     fund_txn = transaction.PaymentTxn(admin_address, sp, addr, 100_000_000)
     signed = fund_txn.sign(admin_private_key)
     txid = algod_client.send_transaction(signed)
@@ -220,7 +223,7 @@ dp_app_id, dp_app_addr = deploy_contract(
     "DistributionPool",
     "create(uint64,uint64,uint64)void",
     [fry_asa_id, nft_app_id, 1000],
-    num_uints=8, num_byte_slices=1,
+    num_uints=8, num_byte_slices=2,
 )
 # Fund with 5 ALGO
 sp = algod_client.suggested_params()
@@ -239,6 +242,17 @@ atc.execute(algod_client, 4)
 # Fund DP with 10M FRY for epoch
 send_asa(admin_address, admin_private_key, dp_app_addr, 20_000_000, fry_asa_id)  # extra buffer
 print(f"  DistributionPool: app={dp_app_id}, funded with 20M microFRY")
+
+# Set automation address on DistributionPool
+m_admin_set_automation = abi.Method.from_signature("admin_set_automation(address)void")
+atc = AtomicTransactionComposer()
+atc.add_method_call(
+    app_id=dp_app_id, method=m_admin_set_automation, sender=admin_address,
+    sp=sp_with_fee(algod_client), signer=admin_signer,
+    method_args=[automation_address],
+)
+atc.execute(algod_client, 4)
+print(f"  Automation address set on DistributionPool")
 
 # User1 mints NFT #1
 token_id_1_bytes = (1).to_bytes(8, "big")
@@ -271,7 +285,7 @@ m_admin_set_base_uri = abi.Method.from_signature("admin_set_base_uri(string)void
 m_admin_set_treasury_nft = abi.Method.from_signature("admin_set_treasury(address)void")
 m_admin_set_mint_price = abi.Method.from_signature("admin_set_mint_price(uint64)void")
 m_admin_withdraw = abi.Method.from_signature("admin_withdraw(uint64,uint64,address)void")
-m_start_epoch = abi.Method.from_signature("start_epoch(uint64)uint64")
+m_start_epoch = abi.Method.from_signature("start_epoch()uint64")
 m_claim = abi.Method.from_signature("claim(uint64)uint64")
 m_cancel_epoch = abi.Method.from_signature("cancel_epoch()void")
 m_admin_set_nft_app_id = abi.Method.from_signature("admin_set_nft_app_id(uint64)void")
@@ -650,17 +664,17 @@ def _dp_call_as_user2(method, args, foreign_assets=None, foreign_apps=None):
 
 
 run_test("test_nonadmin_start_epoch", "user2 calls start_epoch → reverts",
-         lambda: assert_fails(lambda: _dp_call_as_user2(m_start_epoch, [1_000_000], foreign_assets=[fry_asa_id])))
+         lambda: assert_fails(lambda: _dp_call_as_user2(m_start_epoch, [], foreign_assets=[fry_asa_id])))
 
 
 # For cancel_epoch test: admin first starts epoch, then user2 tries cancel, then admin cancels cleanup
 def test_nonadmin_cancel_epoch():
-    # Admin starts epoch
+    # Automation starts epoch
     atc = AtomicTransactionComposer()
     atc.add_method_call(
-        app_id=dp_app_id, method=m_start_epoch, sender=admin_address,
-        sp=sp_with_fee(algod_client), signer=admin_signer,
-        method_args=[10_000_000], foreign_assets=[fry_asa_id],
+        app_id=dp_app_id, method=m_start_epoch, sender=automation_address,
+        sp=sp_with_fee(algod_client), signer=automation_signer,
+        method_args=[], foreign_assets=[fry_asa_id],
     )
     atc.execute(algod_client, 4)
     try:
@@ -710,12 +724,12 @@ def _claim_call(sender_addr, signer, token_id, epoch=1):
     atc.execute(algod_client, 4)
 
 
-def _start_epoch_as_admin(amount):
+def _start_epoch_as_automation():
     atc = AtomicTransactionComposer()
     atc.add_method_call(
-        app_id=dp_app_id, method=m_start_epoch, sender=admin_address,
-        sp=sp_with_fee(algod_client), signer=admin_signer,
-        method_args=[amount], foreign_assets=[fry_asa_id],
+        app_id=dp_app_id, method=m_start_epoch, sender=automation_address,
+        sp=sp_with_fee(algod_client), signer=automation_signer,
+        method_args=[], foreign_assets=[fry_asa_id],
     )
     return atc.execute(algod_client, 4).abi_results[0].return_value
 
@@ -734,7 +748,7 @@ run_test("test_claim_no_active_epoch", "claim with no active epoch → reverts",
          lambda: assert_fails(lambda: _claim_call(user1_address, user1_signer, 1, epoch=1)))
 
 # Tests that need active epoch: start a fresh epoch first
-epoch_num = _start_epoch_as_admin(10_000_000)  # per_nft = 10000
+epoch_num = _start_epoch_as_automation()  # per_nft = 10000
 print(f"  [info] started epoch {epoch_num} for claim tests")
 
 run_test("test_claim_invalid_token_zero", "claim(0) → reverts",
@@ -756,15 +770,42 @@ run_test("test_claim_double", "double-claim same token → reverts", test_claim_
 
 # start_epoch attacks
 run_test("test_start_epoch_while_active", "start_epoch while active → reverts",
-         lambda: assert_fails(lambda: _start_epoch_as_admin(5_000_000)))
+         lambda: assert_fails(lambda: _start_epoch_as_automation()))
 
 # Cancel epoch before the next two tests (need inactive state)
 _cancel_epoch_as_admin()
 
-run_test("test_start_epoch_zero_amount", "start_epoch(0) → reverts",
-         lambda: assert_fails(lambda: _start_epoch_as_admin(0)))
-run_test("test_start_epoch_exceeds_balance", "start_epoch(>>balance) → reverts",
-         lambda: assert_fails(lambda: _start_epoch_as_admin(999_999_999_999)))
+def test_start_epoch_zero_balance():
+    # Drain all FRY from pool via emergency withdraw
+    pool_bal = algod_client.account_asset_info(dp_app_addr, fry_asa_id)["asset-holding"]["amount"]
+    if pool_bal > 0:
+        atc = AtomicTransactionComposer()
+        atc.add_method_call(
+            app_id=dp_app_id, method=m_emergency_withdraw_fry, sender=admin_address,
+            sp=sp_with_fee(algod_client, 1), signer=admin_signer,
+            method_args=[pool_bal, admin_address], foreign_assets=[fry_asa_id],
+        )
+        atc.execute(algod_client, 4)
+    # Now start_epoch should fail with zero balance
+    assert_fails(lambda: _start_epoch_as_automation())
+    # Re-fund pool for subsequent tests
+    send_asa(admin_address, admin_private_key, dp_app_addr, 20_000_000, fry_asa_id)
+
+run_test("test_start_epoch_zero_balance", "start_epoch() with zero FRY balance \u2192 reverts",
+         test_start_epoch_zero_balance)
+
+def test_admin_cannot_start_epoch():
+    # Admin tries to call start_epoch directly - should fail (only automation)
+    atc = AtomicTransactionComposer()
+    atc.add_method_call(
+        app_id=dp_app_id, method=m_start_epoch, sender=admin_address,
+        sp=sp_with_fee(algod_client), signer=admin_signer,
+        method_args=[], foreign_assets=[fry_asa_id],
+    )
+    atc.execute(algod_client, 4)
+
+run_test("test_admin_cannot_start_epoch", "admin calls start_epoch \u2192 reverts (only automation)",
+         lambda: assert_fails(test_admin_cannot_start_epoch))
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -824,14 +865,16 @@ print("=" * 60)
 
 
 def test_claim_correct_amount():
-    # Fresh epoch (previous epoch was cancelled). current_epoch is 2 after cancel, so new is 3.
-    ep = _start_epoch_as_admin(10_000_000)  # per_nft = 10_000
+    # Read pool balance to calculate expected per_nft dynamically
+    pool_bal = algod_client.account_asset_info(dp_app_addr, fry_asa_id)["asset-holding"]["amount"]
+    expected_per_nft = pool_bal // 1000
+    ep = _start_epoch_as_automation()
     # Snapshot balance
     before = algod_client.account_asset_info(user1_address, fry_asa_id)["asset-holding"]["amount"]
     _claim_call(user1_address, user1_signer, 1, epoch=ep)
     after = algod_client.account_asset_info(user1_address, fry_asa_id)["asset-holding"]["amount"]
     delta = after - before
-    assert delta == 10_000, f"Expected delta=10000, got {delta}"
+    assert delta == expected_per_nft, f"Expected delta={expected_per_nft}, got {delta}"
 
 
 run_test("test_claim_correct_amount", "claim delivers epoch_per_nft microFRY", test_claim_correct_amount)

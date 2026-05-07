@@ -3,23 +3,23 @@
 
 // algopy.arc4.ARC4Contract.approval_program() -> uint64:
 main:
-    intcblock 0 1 8 4
-    bytecblock "admin" "epoch_active" "current_epoch" "fry_asset_id" "epoch_claimed_count" "epoch_per_nft" 0x151f7c75 "total_supply" "epoch_total" "nft_app_id"
+    intcblock 0 1 8 32
+    bytecblock "admin" "epoch_active" "current_epoch" "fry_asset_id" "epoch_claimed_count" "epoch_per_nft" 0x151f7c75 "total_supply" "epoch_total" "nft_app_id" "automation_address"
     // distribution_pool.py:24
     // class DistributionPool(ARC4Contract):
     txn NumAppArgs
-    bz main_bare_routing@23
+    bz main_bare_routing@24
     txn OnCompletion
     !
     assert
     txn ApplicationID
-    bz main_create_NoOp@19
-    pushbytess 0x2ce8dfa8 0xd1f1ba15 0x53799f1d 0x111b59f0 0xc6dd38ef 0xba550ecd 0x70246938 0x17875f11 0xebda95f5 0xed533f28 0xd005c1f9 0xa6263b72 // method "start_epoch(uint64)uint64", method "claim(uint64)uint64", method "cancel_epoch()void", method "cleanup_claim_box(uint64,uint64)void", method "get_pool_balance()uint64", method "get_epoch_info()(uint64,uint64,uint64,uint64,uint64)", method "admin_opt_in(uint64)void", method "admin_set_nft_app_id(uint64)void", method "admin_withdraw_non_fry(uint64,uint64,address)void", method "admin_withdraw_algo(uint64,address)void", method "admin_emergency_withdraw_fry(uint64,address)void", method "admin_set_admin(address)void"
+    bz main_create_NoOp@20
+    pushbytess 0x8bff22f9 0xd1f1ba15 0x53799f1d 0x111b59f0 0xc6dd38ef 0xba550ecd 0x70246938 0x17875f11 0xebda95f5 0xed533f28 0xd005c1f9 0xa6263b72 0x4a65f100 // method "start_epoch()uint64", method "claim(uint64)uint64", method "cancel_epoch()void", method "cleanup_claim_box(uint64,uint64)void", method "get_pool_balance()uint64", method "get_epoch_info()(uint64,uint64,uint64,uint64,uint64)", method "admin_opt_in(uint64)void", method "admin_set_nft_app_id(uint64)void", method "admin_withdraw_non_fry(uint64,uint64,address)void", method "admin_withdraw_algo(uint64,address)void", method "admin_emergency_withdraw_fry(uint64,address)void", method "admin_set_admin(address)void", method "admin_set_automation(address)void"
     txna ApplicationArgs 0
-    match start_epoch claim cancel_epoch cleanup_claim_box get_pool_balance get_epoch_info admin_opt_in admin_set_nft_app_id admin_withdraw_non_fry admin_withdraw_algo admin_emergency_withdraw_fry admin_set_admin
+    match start_epoch claim cancel_epoch cleanup_claim_box get_pool_balance get_epoch_info admin_opt_in admin_set_nft_app_id admin_withdraw_non_fry admin_withdraw_algo admin_emergency_withdraw_fry admin_set_admin admin_set_automation
     err
 
-main_create_NoOp@19:
+main_create_NoOp@20:
     // distribution_pool.py:24
     // class DistributionPool(ARC4Contract):
     pushbytes 0x7efda4d2 // method "create(uint64,uint64,uint64)void"
@@ -27,21 +27,20 @@ main_create_NoOp@19:
     match create
     err
 
-main_bare_routing@23:
+main_bare_routing@24:
     // distribution_pool.py:24
     // class DistributionPool(ARC4Contract):
-    intc_3 // UpdateApplication
-    pushint 5 // DeleteApplication
+    pushints 4 5 // UpdateApplication, DeleteApplication
     txn OnCompletion
-    match main_update@24 main_delete@25
+    match main_update@25 main_delete@26
     err
 
-main_delete@25:
-    // distribution_pool.py:66
+main_delete@26:
+    // distribution_pool.py:67
     // @arc4.baremethod(allow_actions=["DeleteApplication"])
     txn ApplicationID
     assert
-    // distribution_pool.py:68
+    // distribution_pool.py:69
     // assert Txn.sender == self.admin.value, "Only admin"
     txn Sender
     intc_0 // 0
@@ -50,17 +49,17 @@ main_delete@25:
     assert // check self.admin exists
     ==
     assert // Only admin
-    // distribution_pool.py:66
+    // distribution_pool.py:67
     // @arc4.baremethod(allow_actions=["DeleteApplication"])
     intc_1 // 1
     return
 
-main_update@24:
-    // distribution_pool.py:62
+main_update@25:
+    // distribution_pool.py:63
     // @arc4.baremethod(allow_actions=["UpdateApplication"])
     txn ApplicationID
     assert
-    // distribution_pool.py:64
+    // distribution_pool.py:65
     // assert Txn.sender == self.admin.value, "Only admin"
     txn Sender
     intc_0 // 0
@@ -69,7 +68,7 @@ main_update@24:
     assert // check self.admin exists
     ==
     assert // Only admin
-    // distribution_pool.py:62
+    // distribution_pool.py:63
     // @arc4.baremethod(allow_actions=["UpdateApplication"])
     intc_1 // 1
     return
@@ -77,7 +76,7 @@ main_update@24:
 
 // distribution_pool.DistributionPool.create[routing]() -> void:
 create:
-    // distribution_pool.py:43
+    // distribution_pool.py:44
     // @arc4.abimethod(create="require")
     txna ApplicationArgs 1
     dup
@@ -97,63 +96,63 @@ create:
     intc_2 // 8
     ==
     assert // invalid number of bytes for arc4.uint64
-    // distribution_pool.py:50
+    // distribution_pool.py:51
     // ts = total_supply.as_uint64()
     btoi
-    // distribution_pool.py:51
+    // distribution_pool.py:52
     // assert ts > UInt64(0), "Supply must be positive"
     dup
     assert // Supply must be positive
-    // distribution_pool.py:52
+    // distribution_pool.py:53
     // self.admin.value = Txn.sender
     bytec_0 // "admin"
     txn Sender
     app_global_put
-    // distribution_pool.py:53
+    // distribution_pool.py:54
     // self.fry_asset_id.value = fry_asa_id.as_uint64()
     uncover 2
     btoi
     bytec_3 // "fry_asset_id"
     swap
     app_global_put
-    // distribution_pool.py:54
+    // distribution_pool.py:55
     // self.nft_app_id.value = nft_app_id.as_uint64()
     swap
     btoi
     bytec 9 // "nft_app_id"
     swap
     app_global_put
-    // distribution_pool.py:55
+    // distribution_pool.py:56
     // self.total_supply.value = ts
     bytec 7 // "total_supply"
     swap
     app_global_put
-    // distribution_pool.py:56
+    // distribution_pool.py:57
     // self.current_epoch.value = UInt64(0)
     bytec_2 // "current_epoch"
     intc_0 // 0
     app_global_put
-    // distribution_pool.py:57
+    // distribution_pool.py:58
     // self.epoch_active.value = UInt64(0)
     bytec_1 // "epoch_active"
     intc_0 // 0
     app_global_put
-    // distribution_pool.py:58
+    // distribution_pool.py:59
     // self.epoch_total.value = UInt64(0)
     bytec 8 // "epoch_total"
     intc_0 // 0
     app_global_put
-    // distribution_pool.py:59
+    // distribution_pool.py:60
     // self.epoch_per_nft.value = UInt64(0)
     bytec 5 // "epoch_per_nft"
     intc_0 // 0
     app_global_put
-    // distribution_pool.py:60
+    // distribution_pool.py:61
     // self.epoch_claimed_count.value = UInt64(0)
     bytec 4 // "epoch_claimed_count"
     intc_0 // 0
     app_global_put
-    // distribution_pool.py:43
+    // distribution_pool.py:44
     // @arc4.abimethod(create="require")
     intc_1 // 1
     return
@@ -161,24 +160,16 @@ create:
 
 // distribution_pool.DistributionPool.start_epoch[routing]() -> void:
 start_epoch:
-    // distribution_pool.py:72
-    // @arc4.abimethod
-    txna ApplicationArgs 1
-    dup
-    len
-    intc_2 // 8
-    ==
-    assert // invalid number of bytes for arc4.uint64
-    // distribution_pool.py:74
-    // assert Txn.sender == self.admin.value, "Only admin"
+    // distribution_pool.py:75
+    // assert Txn.sender == self.automation_address.value, "Only automation"
     txn Sender
     intc_0 // 0
-    bytec_0 // "admin"
+    bytec 10 // "automation_address"
     app_global_get_ex
-    assert // check self.admin exists
+    assert // check self.automation_address exists
     ==
-    assert // Only admin
-    // distribution_pool.py:75
+    assert // Only automation
+    // distribution_pool.py:76
     // assert self.epoch_active.value == UInt64(0), "Epoch already active"
     intc_0 // 0
     bytec_1 // "epoch_active"
@@ -186,37 +177,28 @@ start_epoch:
     assert // check self.epoch_active exists
     !
     assert // Epoch already active
-    // distribution_pool.py:77
-    // total_amt = total_amount.as_uint64()
-    dup
-    btoi
-    // distribution_pool.py:78
-    // assert total_amt > UInt64(0), "Amount must be positive"
-    dup
-    assert // Amount must be positive
-    // distribution_pool.py:82
+    // distribution_pool.py:80
     // Global.current_application_address, self.fry_asset_id.value
     global CurrentApplicationAddress
     intc_0 // 0
     bytec_3 // "fry_asset_id"
     app_global_get_ex
     assert // check self.fry_asset_id exists
-    // distribution_pool.py:80-83
-    // # Verify contract has enough FRY
+    // distribution_pool.py:78-81
+    // # Auto-read pool FRY balance
     // balance, has_asset = op.AssetHoldingGet.asset_balance(
     //     Global.current_application_address, self.fry_asset_id.value
     // )
     asset_holding_get AssetBalance
-    // distribution_pool.py:84
+    // distribution_pool.py:82
     // assert has_asset, "Not opted into FRY"
     assert // Not opted into FRY
+    // distribution_pool.py:83
+    // assert balance > UInt64(0), "No FRY balance"
+    dup
+    assert // No FRY balance
     // distribution_pool.py:85
-    // assert balance >= total_amt, "Insufficient FRY balance"
-    dig 1
-    >=
-    assert // Insufficient FRY balance
-    // distribution_pool.py:87
-    // per_nft = total_amt // self.total_supply.value
+    // per_nft = balance // self.total_supply.value
     intc_0 // 0
     bytec 7 // "total_supply"
     app_global_get_ex
@@ -224,11 +206,11 @@ start_epoch:
     dig 1
     swap
     /
-    // distribution_pool.py:88
-    // assert per_nft > UInt64(0), "Amount too small for supply"
+    // distribution_pool.py:86
+    // assert per_nft > UInt64(0), "Balance too small for supply"
     dup
-    assert // Amount too small for supply
-    // distribution_pool.py:90
+    assert // Balance too small for supply
+    // distribution_pool.py:88
     // new_epoch = self.current_epoch.value + UInt64(1)
     intc_0 // 0
     bytec_2 // "current_epoch"
@@ -236,47 +218,51 @@ start_epoch:
     assert // check self.current_epoch exists
     intc_1 // 1
     +
-    // distribution_pool.py:91
+    // distribution_pool.py:89
     // self.current_epoch.value = new_epoch
     bytec_2 // "current_epoch"
     dig 1
     app_global_put
-    // distribution_pool.py:92
+    // distribution_pool.py:90
     // self.epoch_active.value = UInt64(1)
     bytec_1 // "epoch_active"
     intc_1 // 1
     app_global_put
-    // distribution_pool.py:93
-    // self.epoch_total.value = total_amt
+    // distribution_pool.py:91
+    // self.epoch_total.value = balance
     bytec 8 // "epoch_total"
-    uncover 3
+    dig 3
     app_global_put
-    // distribution_pool.py:94
+    // distribution_pool.py:92
     // self.epoch_per_nft.value = per_nft
     bytec 5 // "epoch_per_nft"
     dig 2
     app_global_put
-    // distribution_pool.py:95
+    // distribution_pool.py:93
     // self.epoch_claimed_count.value = UInt64(0)
     bytec 4 // "epoch_claimed_count"
     intc_0 // 0
     app_global_put
-    // distribution_pool.py:99
+    // distribution_pool.py:97
     // arc4.UInt64(new_epoch),
     itob
-    // distribution_pool.py:101
-    // arc4.UInt64(per_nft),
-    swap
+    // distribution_pool.py:98
+    // arc4.UInt64(balance),
+    uncover 2
     itob
-    // distribution_pool.py:97-102
+    // distribution_pool.py:99
+    // arc4.UInt64(per_nft),
+    uncover 2
+    itob
+    // distribution_pool.py:95-100
     // arc4.emit(
     //     "EpochStarted(uint64,uint64,uint64)",
     //     arc4.UInt64(new_epoch),
-    //     total_amount,
+    //     arc4.UInt64(balance),
     //     arc4.UInt64(per_nft),
     // )
-    dig 1
-    uncover 3
+    dig 2
+    uncover 2
     concat
     swap
     concat
@@ -284,7 +270,7 @@ start_epoch:
     swap
     concat
     log
-    // distribution_pool.py:72
+    // distribution_pool.py:73
     // @arc4.abimethod
     bytec 6 // 0x151f7c75
     swap
@@ -296,7 +282,7 @@ start_epoch:
 
 // distribution_pool.DistributionPool.claim[routing]() -> void:
 claim:
-    // distribution_pool.py:106
+    // distribution_pool.py:104
     // @arc4.abimethod
     txna ApplicationArgs 1
     dupn 2
@@ -304,7 +290,7 @@ claim:
     intc_2 // 8
     ==
     assert // invalid number of bytes for arc4.uint64
-    // distribution_pool.py:108
+    // distribution_pool.py:106
     // assert self.epoch_active.value == UInt64(1), "No active epoch"
     intc_0 // 0
     bytec_1 // "epoch_active"
@@ -313,15 +299,15 @@ claim:
     intc_1 // 1
     ==
     assert // No active epoch
-    // distribution_pool.py:109
+    // distribution_pool.py:107
     // tid = token_id.as_uint64()
     dup
     btoi
-    // distribution_pool.py:110
+    // distribution_pool.py:108
     // assert tid >= UInt64(1), "Invalid token ID"
     dup
     assert // Invalid token ID
-    // distribution_pool.py:111
+    // distribution_pool.py:109
     // assert tid <= self.total_supply.value, "Invalid token ID"
     intc_0 // 0
     bytec 7 // "total_supply"
@@ -330,7 +316,7 @@ claim:
     dig 1
     >=
     assert // Invalid token ID
-    // distribution_pool.py:113-114
+    // distribution_pool.py:111-112
     // # Collision-free key: epoch(8 BE) || token_id(8 BE) = 16 bytes
     // claim_key = op.itob(self.current_epoch.value) + op.itob(tid)
     intc_0 // 0
@@ -341,7 +327,7 @@ claim:
     swap
     itob
     concat
-    // distribution_pool.py:115
+    // distribution_pool.py:113
     // assert claim_key not in self.claimed, "Already claimed this epoch"
     pushbytes 0x63
     swap
@@ -351,7 +337,7 @@ claim:
     bury 1
     !
     assert // Already claimed this epoch
-    // distribution_pool.py:117-123
+    // distribution_pool.py:115-121
     // # Cross-contract call: arc72_ownerOf(uint64)address on GenesisNFT
     // owner, _txn = arc4.abi_call[arc4.Address](
     //     "arc72_ownerOf(uint64)address",
@@ -360,14 +346,14 @@ claim:
     //     fee=0,
     // )
     itxn_begin
-    // distribution_pool.py:121
+    // distribution_pool.py:119
     // app_id=self.nft_app_id.value,
     intc_0 // 0
     bytec 9 // "nft_app_id"
     app_global_get_ex
     assert // check self.nft_app_id exists
     itxn_field ApplicationID
-    // distribution_pool.py:117-123
+    // distribution_pool.py:115-121
     // # Cross-contract call: arc72_ownerOf(uint64)address on GenesisNFT
     // owner, _txn = arc4.abi_call[arc4.Address](
     //     "arc72_ownerOf(uint64)address",
@@ -381,11 +367,11 @@ claim:
     itxn_field ApplicationArgs
     pushint 6 // appl
     itxn_field TypeEnum
-    // distribution_pool.py:122
+    // distribution_pool.py:120
     // fee=0,
     intc_0 // 0
     itxn_field Fee
-    // distribution_pool.py:117-123
+    // distribution_pool.py:115-121
     // # Cross-contract call: arc72_ownerOf(uint64)address on GenesisNFT
     // owner, _txn = arc4.abi_call[arc4.Address](
     //     "arc72_ownerOf(uint64)address",
@@ -403,21 +389,21 @@ claim:
     extract 4 0
     dup
     len
-    pushint 32
+    intc_3 // 32
     ==
     assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
-    // distribution_pool.py:124
+    // distribution_pool.py:122
     // assert owner.native == Txn.sender, "Caller must own this NFT"
     txn Sender
     ==
     assert // Caller must own this NFT
-    // distribution_pool.py:126-127
+    // distribution_pool.py:124-125
     // # Mark claimed BEFORE transfer (prevent reentrancy even though AVM doesn't have it)
     // self.claimed[claim_key] = UInt64(1)
     intc_1 // 1
     itob
     box_put
-    // distribution_pool.py:128
+    // distribution_pool.py:126
     // amount = self.epoch_per_nft.value
     intc_0 // 0
     bytec 5 // "epoch_per_nft"
@@ -426,7 +412,7 @@ claim:
     dup
     uncover 2
     assert // check self.epoch_per_nft exists
-    // distribution_pool.py:130-135
+    // distribution_pool.py:128-133
     // itxn.AssetTransfer(
     //     xfer_asset=self.fry_asset_id.value,
     //     asset_amount=amount,
@@ -434,27 +420,27 @@ claim:
     //     fee=0,
     // ).submit()
     itxn_begin
-    // distribution_pool.py:131
+    // distribution_pool.py:129
     // xfer_asset=self.fry_asset_id.value,
     intc_0 // 0
     bytec_3 // "fry_asset_id"
     app_global_get_ex
     assert // check self.fry_asset_id exists
-    // distribution_pool.py:133
+    // distribution_pool.py:131
     // asset_receiver=Txn.sender,
     txn Sender
     itxn_field AssetReceiver
     itxn_field XferAsset
     itxn_field AssetAmount
-    // distribution_pool.py:130
+    // distribution_pool.py:128
     // itxn.AssetTransfer(
-    intc_3 // axfer
+    pushint 4 // axfer
     itxn_field TypeEnum
-    // distribution_pool.py:134
+    // distribution_pool.py:132
     // fee=0,
     intc_0 // 0
     itxn_field Fee
-    // distribution_pool.py:130-135
+    // distribution_pool.py:128-133
     // itxn.AssetTransfer(
     //     xfer_asset=self.fry_asset_id.value,
     //     asset_amount=amount,
@@ -462,7 +448,7 @@ claim:
     //     fee=0,
     // ).submit()
     itxn_submit
-    // distribution_pool.py:137
+    // distribution_pool.py:135
     // self.epoch_claimed_count.value = self.epoch_claimed_count.value + UInt64(1)
     intc_0 // 0
     bytec 4 // "epoch_claimed_count"
@@ -473,7 +459,7 @@ claim:
     bytec 4 // "epoch_claimed_count"
     dig 1
     app_global_put
-    // distribution_pool.py:139-140
+    // distribution_pool.py:137-138
     // # Auto-complete epoch when all NFTs have claimed
     // if self.epoch_claimed_count.value == self.total_supply.value:
     intc_0 // 0
@@ -482,28 +468,28 @@ claim:
     assert // check self.total_supply exists
     ==
     bz claim_after_if_else@5
-    // distribution_pool.py:141
+    // distribution_pool.py:139
     // self.epoch_active.value = UInt64(0)
     bytec_1 // "epoch_active"
     intc_0 // 0
     app_global_put
 
 claim_after_if_else@5:
-    // distribution_pool.py:145
+    // distribution_pool.py:143
     // arc4.UInt64(self.current_epoch.value),
     intc_0 // 0
     bytec_2 // "current_epoch"
     app_global_get_ex
     assert // check self.current_epoch exists
     itob
-    // distribution_pool.py:147
+    // distribution_pool.py:145
     // arc4.Address(Txn.sender),
     txn Sender
-    // distribution_pool.py:148
+    // distribution_pool.py:146
     // arc4.UInt64(amount),
     dig 2
     itob
-    // distribution_pool.py:143-149
+    // distribution_pool.py:141-147
     // arc4.emit(
     //     "Claim(uint64,uint64,address,uint64)",
     //     arc4.UInt64(self.current_epoch.value),
@@ -522,7 +508,7 @@ claim_after_if_else@5:
     swap
     concat
     log
-    // distribution_pool.py:106
+    // distribution_pool.py:104
     // @arc4.abimethod
     bytec 6 // 0x151f7c75
     swap
@@ -534,7 +520,7 @@ claim_after_if_else@5:
 
 // distribution_pool.DistributionPool.cancel_epoch[routing]() -> void:
 cancel_epoch:
-    // distribution_pool.py:159
+    // distribution_pool.py:157
     // assert Txn.sender == self.admin.value, "Only admin"
     txn Sender
     intc_0 // 0
@@ -543,7 +529,7 @@ cancel_epoch:
     assert // check self.admin exists
     ==
     assert // Only admin
-    // distribution_pool.py:160
+    // distribution_pool.py:158
     // assert self.epoch_active.value == UInt64(1), "No active epoch"
     intc_0 // 0
     bytec_1 // "epoch_active"
@@ -552,31 +538,31 @@ cancel_epoch:
     intc_1 // 1
     ==
     assert // No active epoch
-    // distribution_pool.py:161
+    // distribution_pool.py:159
     // self.epoch_active.value = UInt64(0)
     bytec_1 // "epoch_active"
     intc_0 // 0
     app_global_put
-    // distribution_pool.py:162
+    // distribution_pool.py:160
     // self.epoch_total.value = UInt64(0)
     bytec 8 // "epoch_total"
     intc_0 // 0
     app_global_put
-    // distribution_pool.py:163
+    // distribution_pool.py:161
     // self.epoch_per_nft.value = UInt64(0)
     bytec 5 // "epoch_per_nft"
     intc_0 // 0
     app_global_put
-    // distribution_pool.py:164
+    // distribution_pool.py:162
     // self.epoch_claimed_count.value = UInt64(0)
     bytec 4 // "epoch_claimed_count"
     intc_0 // 0
     app_global_put
-    // distribution_pool.py:153-157
+    // distribution_pool.py:151-155
     // # NOTE: If holders have already claimed before cancel, that FRY
     // # is legitimately distributed and not returned to the pool.
-    // # When starting the next epoch, use the current pool FRY balance
-    // # (start_epoch validates balance >= total_amount).
+    // # When starting the next epoch, the automation wallet triggers
+    // # start_epoch which uses the current pool FRY balance.
     // @arc4.abimethod
     intc_1 // 1
     return
@@ -584,7 +570,7 @@ cancel_epoch:
 
 // distribution_pool.DistributionPool.cleanup_claim_box[routing]() -> void:
 cleanup_claim_box:
-    // distribution_pool.py:166
+    // distribution_pool.py:164
     // @arc4.abimethod
     txna ApplicationArgs 1
     dup
@@ -598,12 +584,12 @@ cleanup_claim_box:
     intc_2 // 8
     ==
     assert // invalid number of bytes for arc4.uint64
-    // distribution_pool.py:168-169
+    // distribution_pool.py:166-167
     // # Permissionless: anyone can reclaim MBR from past-epoch claim boxes
     // ep = epoch.as_uint64()
     swap
     btoi
-    // distribution_pool.py:170
+    // distribution_pool.py:168
     // assert ep < self.current_epoch.value, "Can only clean past epochs"
     intc_0 // 0
     bytec_2 // "current_epoch"
@@ -612,14 +598,14 @@ cleanup_claim_box:
     dig 1
     >
     assert // Can only clean past epochs
-    // distribution_pool.py:171
+    // distribution_pool.py:169
     // claim_key = op.itob(ep) + op.itob(token_id.as_uint64())
     itob
     swap
     btoi
     itob
     concat
-    // distribution_pool.py:172
+    // distribution_pool.py:170
     // if claim_key in self.claimed:
     pushbytes 0x63
     swap
@@ -628,14 +614,14 @@ cleanup_claim_box:
     box_len
     bury 1
     bz cleanup_claim_box_after_if_else@3
-    // distribution_pool.py:173
+    // distribution_pool.py:171
     // del self.claimed[claim_key]
     dup
     box_del
     pop
 
 cleanup_claim_box_after_if_else@3:
-    // distribution_pool.py:166
+    // distribution_pool.py:164
     // @arc4.abimethod
     intc_1 // 1
     return
@@ -643,28 +629,28 @@ cleanup_claim_box_after_if_else@3:
 
 // distribution_pool.DistributionPool.get_pool_balance[routing]() -> void:
 get_pool_balance:
-    // distribution_pool.py:180
+    // distribution_pool.py:178
     // Global.current_application_address, self.fry_asset_id.value
     global CurrentApplicationAddress
     intc_0 // 0
     bytec_3 // "fry_asset_id"
     app_global_get_ex
     assert // check self.fry_asset_id exists
-    // distribution_pool.py:179-181
+    // distribution_pool.py:177-179
     // balance, has_asset = op.AssetHoldingGet.asset_balance(
     //     Global.current_application_address, self.fry_asset_id.value
     // )
     asset_holding_get AssetBalance
-    // distribution_pool.py:182
+    // distribution_pool.py:180
     // if has_asset:
     bz get_pool_balance_after_if_else@3
-    // distribution_pool.py:183
+    // distribution_pool.py:181
     // return arc4.UInt64(balance)
     dup
     itob
 
 get_pool_balance_after_inlined_distribution_pool.DistributionPool.get_pool_balance@4:
-    // distribution_pool.py:177
+    // distribution_pool.py:175
     // @arc4.abimethod(readonly=True)
     bytec 6 // 0x151f7c75
     swap
@@ -674,52 +660,52 @@ get_pool_balance_after_inlined_distribution_pool.DistributionPool.get_pool_balan
     return
 
 get_pool_balance_after_if_else@3:
-    // distribution_pool.py:184
+    // distribution_pool.py:182
     // return arc4.UInt64(0)
     pushbytes 0x0000000000000000
-    // distribution_pool.py:177
+    // distribution_pool.py:175
     // @arc4.abimethod(readonly=True)
     b get_pool_balance_after_inlined_distribution_pool.DistributionPool.get_pool_balance@4
 
 
 // distribution_pool.DistributionPool.get_epoch_info[routing]() -> void:
 get_epoch_info:
-    // distribution_pool.py:192
+    // distribution_pool.py:190
     // arc4.UInt64(self.current_epoch.value),
     intc_0 // 0
     bytec_2 // "current_epoch"
     app_global_get_ex
     assert // check self.current_epoch exists
     itob
-    // distribution_pool.py:193
+    // distribution_pool.py:191
     // arc4.UInt64(self.epoch_active.value),
     intc_0 // 0
     bytec_1 // "epoch_active"
     app_global_get_ex
     assert // check self.epoch_active exists
     itob
-    // distribution_pool.py:194
+    // distribution_pool.py:192
     // arc4.UInt64(self.epoch_total.value),
     intc_0 // 0
     bytec 8 // "epoch_total"
     app_global_get_ex
     assert // check self.epoch_total exists
     itob
-    // distribution_pool.py:195
+    // distribution_pool.py:193
     // arc4.UInt64(self.epoch_per_nft.value),
     intc_0 // 0
     bytec 5 // "epoch_per_nft"
     app_global_get_ex
     assert // check self.epoch_per_nft exists
     itob
-    // distribution_pool.py:196
+    // distribution_pool.py:194
     // arc4.UInt64(self.epoch_claimed_count.value),
     intc_0 // 0
     bytec 4 // "epoch_claimed_count"
     app_global_get_ex
     assert // check self.epoch_claimed_count exists
     itob
-    // distribution_pool.py:190-198
+    // distribution_pool.py:188-196
     // return arc4.Tuple(
     //     (
     //         arc4.UInt64(self.current_epoch.value),
@@ -738,7 +724,7 @@ get_epoch_info:
     concat
     swap
     concat
-    // distribution_pool.py:186
+    // distribution_pool.py:184
     // @arc4.abimethod(readonly=True)
     bytec 6 // 0x151f7c75
     swap
@@ -750,7 +736,7 @@ get_epoch_info:
 
 // distribution_pool.DistributionPool.admin_opt_in[routing]() -> void:
 admin_opt_in:
-    // distribution_pool.py:202
+    // distribution_pool.py:200
     // @arc4.abimethod
     txna ApplicationArgs 1
     dup
@@ -758,7 +744,7 @@ admin_opt_in:
     intc_2 // 8
     ==
     assert // invalid number of bytes for arc4.uint64
-    // distribution_pool.py:204
+    // distribution_pool.py:202
     // assert Txn.sender == self.admin.value, "Only admin"
     txn Sender
     intc_0 // 0
@@ -767,7 +753,7 @@ admin_opt_in:
     assert // check self.admin exists
     ==
     assert // Only admin
-    // distribution_pool.py:205-210
+    // distribution_pool.py:203-208
     // itxn.AssetTransfer(
     //     xfer_asset=asset_id.as_uint64(),
     //     asset_amount=0,
@@ -775,27 +761,27 @@ admin_opt_in:
     //     fee=0,
     // ).submit()
     itxn_begin
-    // distribution_pool.py:206
+    // distribution_pool.py:204
     // xfer_asset=asset_id.as_uint64(),
     btoi
-    // distribution_pool.py:208
+    // distribution_pool.py:206
     // asset_receiver=Global.current_application_address,
     global CurrentApplicationAddress
     itxn_field AssetReceiver
-    // distribution_pool.py:207
+    // distribution_pool.py:205
     // asset_amount=0,
     intc_0 // 0
     itxn_field AssetAmount
     itxn_field XferAsset
-    // distribution_pool.py:205
+    // distribution_pool.py:203
     // itxn.AssetTransfer(
-    intc_3 // axfer
+    pushint 4 // axfer
     itxn_field TypeEnum
-    // distribution_pool.py:209
+    // distribution_pool.py:207
     // fee=0,
     intc_0 // 0
     itxn_field Fee
-    // distribution_pool.py:205-210
+    // distribution_pool.py:203-208
     // itxn.AssetTransfer(
     //     xfer_asset=asset_id.as_uint64(),
     //     asset_amount=0,
@@ -803,7 +789,7 @@ admin_opt_in:
     //     fee=0,
     // ).submit()
     itxn_submit
-    // distribution_pool.py:202
+    // distribution_pool.py:200
     // @arc4.abimethod
     intc_1 // 1
     return
@@ -811,7 +797,7 @@ admin_opt_in:
 
 // distribution_pool.DistributionPool.admin_set_nft_app_id[routing]() -> void:
 admin_set_nft_app_id:
-    // distribution_pool.py:212
+    // distribution_pool.py:210
     // @arc4.abimethod
     txna ApplicationArgs 1
     dup
@@ -819,7 +805,7 @@ admin_set_nft_app_id:
     intc_2 // 8
     ==
     assert // invalid number of bytes for arc4.uint64
-    // distribution_pool.py:214
+    // distribution_pool.py:212
     // assert Txn.sender == self.admin.value, "Only admin"
     txn Sender
     intc_0 // 0
@@ -828,13 +814,13 @@ admin_set_nft_app_id:
     assert // check self.admin exists
     ==
     assert // Only admin
-    // distribution_pool.py:215
+    // distribution_pool.py:213
     // self.nft_app_id.value = new_app_id.as_uint64()
     btoi
     bytec 9 // "nft_app_id"
     swap
     app_global_put
-    // distribution_pool.py:212
+    // distribution_pool.py:210
     // @arc4.abimethod
     intc_1 // 1
     return
@@ -842,7 +828,7 @@ admin_set_nft_app_id:
 
 // distribution_pool.DistributionPool.admin_withdraw_non_fry[routing]() -> void:
 admin_withdraw_non_fry:
-    // distribution_pool.py:217
+    // distribution_pool.py:215
     // @arc4.abimethod
     txna ApplicationArgs 1
     dup
@@ -859,10 +845,10 @@ admin_withdraw_non_fry:
     txna ApplicationArgs 3
     dup
     len
-    pushint 32
+    intc_3 // 32
     ==
     assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
-    // distribution_pool.py:221
+    // distribution_pool.py:219
     // assert Txn.sender == self.admin.value, "Only admin"
     txn Sender
     intc_0 // 0
@@ -871,11 +857,11 @@ admin_withdraw_non_fry:
     assert // check self.admin exists
     ==
     assert // Only admin
-    // distribution_pool.py:222
+    // distribution_pool.py:220
     // aid = asset_id.as_uint64()
     uncover 2
     btoi
-    // distribution_pool.py:223
+    // distribution_pool.py:221
     // assert aid != self.fry_asset_id.value, "Cannot withdraw FRY"
     intc_0 // 0
     bytec_3 // "fry_asset_id"
@@ -884,7 +870,7 @@ admin_withdraw_non_fry:
     dig 1
     !=
     assert // Cannot withdraw FRY
-    // distribution_pool.py:224-229
+    // distribution_pool.py:222-227
     // itxn.AssetTransfer(
     //     xfer_asset=aid,
     //     asset_amount=amount.as_uint64(),
@@ -892,7 +878,7 @@ admin_withdraw_non_fry:
     //     fee=0,
     // ).submit()
     itxn_begin
-    // distribution_pool.py:226
+    // distribution_pool.py:224
     // asset_amount=amount.as_uint64(),
     uncover 2
     btoi
@@ -900,15 +886,15 @@ admin_withdraw_non_fry:
     itxn_field AssetReceiver
     itxn_field AssetAmount
     itxn_field XferAsset
-    // distribution_pool.py:224
+    // distribution_pool.py:222
     // itxn.AssetTransfer(
-    intc_3 // axfer
+    pushint 4 // axfer
     itxn_field TypeEnum
-    // distribution_pool.py:228
+    // distribution_pool.py:226
     // fee=0,
     intc_0 // 0
     itxn_field Fee
-    // distribution_pool.py:224-229
+    // distribution_pool.py:222-227
     // itxn.AssetTransfer(
     //     xfer_asset=aid,
     //     asset_amount=amount.as_uint64(),
@@ -916,7 +902,7 @@ admin_withdraw_non_fry:
     //     fee=0,
     // ).submit()
     itxn_submit
-    // distribution_pool.py:217
+    // distribution_pool.py:215
     // @arc4.abimethod
     intc_1 // 1
     return
@@ -924,7 +910,7 @@ admin_withdraw_non_fry:
 
 // distribution_pool.DistributionPool.admin_withdraw_algo[routing]() -> void:
 admin_withdraw_algo:
-    // distribution_pool.py:231
+    // distribution_pool.py:229
     // @arc4.abimethod
     txna ApplicationArgs 1
     dup
@@ -935,10 +921,10 @@ admin_withdraw_algo:
     txna ApplicationArgs 2
     dup
     len
-    pushint 32
+    intc_3 // 32
     ==
     assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
-    // distribution_pool.py:233
+    // distribution_pool.py:231
     // assert Txn.sender == self.admin.value, "Only admin"
     txn Sender
     intc_0 // 0
@@ -947,35 +933,35 @@ admin_withdraw_algo:
     assert // check self.admin exists
     ==
     assert // Only admin
-    // distribution_pool.py:234-238
+    // distribution_pool.py:232-236
     // itxn.Payment(
     //     receiver=receiver.native,
     //     amount=amount.as_uint64(),
     //     fee=0,
     // ).submit()
     itxn_begin
-    // distribution_pool.py:236
+    // distribution_pool.py:234
     // amount=amount.as_uint64(),
     swap
     btoi
     itxn_field Amount
     itxn_field Receiver
-    // distribution_pool.py:234
+    // distribution_pool.py:232
     // itxn.Payment(
     intc_1 // pay
     itxn_field TypeEnum
-    // distribution_pool.py:237
+    // distribution_pool.py:235
     // fee=0,
     intc_0 // 0
     itxn_field Fee
-    // distribution_pool.py:234-238
+    // distribution_pool.py:232-236
     // itxn.Payment(
     //     receiver=receiver.native,
     //     amount=amount.as_uint64(),
     //     fee=0,
     // ).submit()
     itxn_submit
-    // distribution_pool.py:231
+    // distribution_pool.py:229
     // @arc4.abimethod
     intc_1 // 1
     return
@@ -983,7 +969,7 @@ admin_withdraw_algo:
 
 // distribution_pool.DistributionPool.admin_emergency_withdraw_fry[routing]() -> void:
 admin_emergency_withdraw_fry:
-    // distribution_pool.py:240-245
+    // distribution_pool.py:238-243
     // # EMERGENCY: Allows admin to withdraw FRY from the pool.
     // # This bypasses the normal claim-only distribution model.
     // # Intended for recovery during mainnet testing phase.
@@ -999,10 +985,10 @@ admin_emergency_withdraw_fry:
     txna ApplicationArgs 2
     dup
     len
-    pushint 32
+    intc_3 // 32
     ==
     assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
-    // distribution_pool.py:249
+    // distribution_pool.py:247
     // assert Txn.sender == self.admin.value, "Only admin"
     txn Sender
     intc_0 // 0
@@ -1011,7 +997,7 @@ admin_emergency_withdraw_fry:
     assert // check self.admin exists
     ==
     assert // Only admin
-    // distribution_pool.py:250-255
+    // distribution_pool.py:248-253
     // itxn.AssetTransfer(
     //     xfer_asset=self.fry_asset_id.value,
     //     asset_amount=amount.as_uint64(),
@@ -1019,13 +1005,13 @@ admin_emergency_withdraw_fry:
     //     fee=0,
     // ).submit()
     itxn_begin
-    // distribution_pool.py:251
+    // distribution_pool.py:249
     // xfer_asset=self.fry_asset_id.value,
     intc_0 // 0
     bytec_3 // "fry_asset_id"
     app_global_get_ex
     assert // check self.fry_asset_id exists
-    // distribution_pool.py:252
+    // distribution_pool.py:250
     // asset_amount=amount.as_uint64(),
     uncover 2
     btoi
@@ -1033,15 +1019,15 @@ admin_emergency_withdraw_fry:
     itxn_field AssetReceiver
     itxn_field AssetAmount
     itxn_field XferAsset
-    // distribution_pool.py:250
+    // distribution_pool.py:248
     // itxn.AssetTransfer(
-    intc_3 // axfer
+    pushint 4 // axfer
     itxn_field TypeEnum
-    // distribution_pool.py:254
+    // distribution_pool.py:252
     // fee=0,
     intc_0 // 0
     itxn_field Fee
-    // distribution_pool.py:250-255
+    // distribution_pool.py:248-253
     // itxn.AssetTransfer(
     //     xfer_asset=self.fry_asset_id.value,
     //     asset_amount=amount.as_uint64(),
@@ -1049,7 +1035,7 @@ admin_emergency_withdraw_fry:
     //     fee=0,
     // ).submit()
     itxn_submit
-    // distribution_pool.py:240-245
+    // distribution_pool.py:238-243
     // # EMERGENCY: Allows admin to withdraw FRY from the pool.
     // # This bypasses the normal claim-only distribution model.
     // # Intended for recovery during mainnet testing phase.
@@ -1062,15 +1048,15 @@ admin_emergency_withdraw_fry:
 
 // distribution_pool.DistributionPool.admin_set_admin[routing]() -> void:
 admin_set_admin:
-    // distribution_pool.py:257
+    // distribution_pool.py:255
     // @arc4.abimethod
     txna ApplicationArgs 1
     dup
     len
-    pushint 32
+    intc_3 // 32
     ==
     assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
-    // distribution_pool.py:259
+    // distribution_pool.py:257
     // assert Txn.sender == self.admin.value, "Only admin"
     txn Sender
     intc_0 // 0
@@ -1079,12 +1065,42 @@ admin_set_admin:
     assert // check self.admin exists
     ==
     assert // Only admin
-    // distribution_pool.py:260
+    // distribution_pool.py:258
     // self.admin.value = new_admin.native
     bytec_0 // "admin"
     swap
     app_global_put
-    // distribution_pool.py:257
+    // distribution_pool.py:255
+    // @arc4.abimethod
+    intc_1 // 1
+    return
+
+
+// distribution_pool.DistributionPool.admin_set_automation[routing]() -> void:
+admin_set_automation:
+    // distribution_pool.py:260
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_3 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    // distribution_pool.py:262
+    // assert Txn.sender == self.admin.value, "Only admin"
+    txn Sender
+    intc_0 // 0
+    bytec_0 // "admin"
+    app_global_get_ex
+    assert // check self.admin exists
+    ==
+    assert // Only admin
+    // distribution_pool.py:263
+    // self.automation_address.value = automation.native
+    bytec 10 // "automation_address"
+    swap
+    app_global_put
+    // distribution_pool.py:260
     // @arc4.abimethod
     intc_1 // 1
     return
