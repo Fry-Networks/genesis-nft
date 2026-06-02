@@ -1,0 +1,1101 @@
+#pragma version 10
+#pragma typetrack false
+
+// algopy.arc4.ARC4Contract.approval_program() -> uint64:
+main:
+    intcblock 0 1 4 32 10000
+    bytecblock "admin" "treasury" "pool" "pool_bps" "total_routed_algo" "total_routed_asa" 0xff43800d 0x0000000000000000
+    // fee_router.py:23
+    // class FeeRouter(ARC4Contract):
+    txn NumAppArgs
+    bz main_bare_routing@21
+    txn OnCompletion
+    !
+    assert
+    txn ApplicationID
+    bz main_create_NoOp@17
+    pushbytess 0xf9d8a6a7 0x7b260fc0 0x52c8893c 0x963a6dcc 0x70246938 0xc32130f1 0x534e6418 0x20cf092e 0xa6263b72 0x675c361f // method "route_asa_fee(axfer)void", method "route_algo_fee(pay)void", method "flush_asa(uint64)void", method "flush_algo()void", method "admin_opt_in(uint64)void", method "admin_set_pool_bps(uint64)void", method "admin_set_treasury(address)void", method "admin_set_pool(address)void", method "admin_set_admin(address)void", method "get_config()(address,address,uint64,uint64,uint64)"
+    txna ApplicationArgs 0
+    match route_asa_fee route_algo_fee flush_asa flush_algo admin_opt_in admin_set_pool_bps admin_set_treasury admin_set_pool admin_set_admin get_config
+    err
+
+main_create_NoOp@17:
+    // fee_router.py:23
+    // class FeeRouter(ARC4Contract):
+    pushbytes 0x47439833 // method "create(address,address,address,uint64)void"
+    txna ApplicationArgs 0
+    match create
+    err
+
+main_bare_routing@21:
+    // fee_router.py:23
+    // class FeeRouter(ARC4Contract):
+    intc_2 // UpdateApplication
+    pushint 5 // DeleteApplication
+    txn OnCompletion
+    match main_update@22 main_delete@23
+    err
+
+main_delete@23:
+    // fee_router.py:58
+    // @arc4.baremethod(allow_actions=["DeleteApplication"])
+    txn ApplicationID
+    assert
+    // fee_router.py:60
+    // assert Txn.sender == self.admin.value, "Only admin"
+    txn Sender
+    intc_0 // 0
+    bytec_0 // "admin"
+    app_global_get_ex
+    assert // check self.admin exists
+    ==
+    assert // Only admin
+    // fee_router.py:58
+    // @arc4.baremethod(allow_actions=["DeleteApplication"])
+    intc_1 // 1
+    return
+
+main_update@22:
+    // fee_router.py:54
+    // @arc4.baremethod(allow_actions=["UpdateApplication"])
+    txn ApplicationID
+    assert
+    // fee_router.py:56
+    // assert Txn.sender == self.admin.value, "Only admin"
+    txn Sender
+    intc_0 // 0
+    bytec_0 // "admin"
+    app_global_get_ex
+    assert // check self.admin exists
+    ==
+    assert // Only admin
+    // fee_router.py:54
+    // @arc4.baremethod(allow_actions=["UpdateApplication"])
+    intc_1 // 1
+    return
+
+
+// fee_router.FeeRouter.create[routing]() -> void:
+create:
+    // fee_router.py:36
+    // @arc4.abimethod(create="require")
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_3 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    txna ApplicationArgs 2
+    dup
+    len
+    intc_3 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    txna ApplicationArgs 3
+    dup
+    len
+    intc_3 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    txna ApplicationArgs 4
+    dup
+    len
+    pushint 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    // fee_router.py:44
+    // bps = pool_bps.as_uint64()
+    btoi
+    // fee_router.py:45
+    // assert bps > UInt64(0), "pool_bps must be > 0"
+    dup
+    assert // pool_bps must be > 0
+    // fee_router.py:46
+    // assert bps <= UInt64(5000), "pool_bps must be <= 5000"
+    dup
+    pushint 5000
+    <=
+    assert // pool_bps must be <= 5000
+    // fee_router.py:47
+    // self.admin.value = admin.native
+    bytec_0 // "admin"
+    uncover 4
+    app_global_put
+    // fee_router.py:48
+    // self.treasury.value = treasury.native
+    bytec_1 // "treasury"
+    uncover 3
+    app_global_put
+    // fee_router.py:49
+    // self.pool.value = pool.native
+    bytec_2 // "pool"
+    uncover 2
+    app_global_put
+    // fee_router.py:50
+    // self.pool_bps.value = bps
+    bytec_3 // "pool_bps"
+    swap
+    app_global_put
+    // fee_router.py:51
+    // self.total_routed_algo.value = UInt64(0)
+    bytec 4 // "total_routed_algo"
+    intc_0 // 0
+    app_global_put
+    // fee_router.py:52
+    // self.total_routed_asa.value = UInt64(0)
+    bytec 5 // "total_routed_asa"
+    intc_0 // 0
+    app_global_put
+    // fee_router.py:36
+    // @arc4.abimethod(create="require")
+    intc_1 // 1
+    return
+
+
+// fee_router.FeeRouter.route_asa_fee[routing]() -> void:
+route_asa_fee:
+    // fee_router.py:64-68
+    // # Fee split uses the current pool_bps value. If admin changes
+    // # pool_bps between a fee arriving and being routed, the new
+    // # ratio applies to all pending funds. This is acceptable for
+    // # the Genesis NFT use case.
+    // @arc4.abimethod
+    txn GroupIndex
+    intc_1 // 1
+    -
+    dup
+    gtxns TypeEnum
+    intc_2 // axfer
+    ==
+    assert // transaction type is axfer
+    // fee_router.py:71
+    // fee_payment.asset_receiver == Global.current_application_address
+    dup
+    gtxns AssetReceiver
+    global CurrentApplicationAddress
+    ==
+    // fee_router.py:70-72
+    // assert (
+    //     fee_payment.asset_receiver == Global.current_application_address
+    // ), "Payment must be to this app"
+    assert // Payment must be to this app
+    // fee_router.py:73
+    // amount = fee_payment.asset_amount
+    dup
+    gtxns AssetAmount
+    dup
+    cover 2
+    // fee_router.py:74
+    // assert amount > UInt64(0), "Amount must be > 0"
+    dup
+    assert // Amount must be > 0
+    // fee_router.py:76
+    // pool_share = amount * self.pool_bps.value // UInt64(10000)
+    intc_0 // 0
+    bytec_3 // "pool_bps"
+    app_global_get_ex
+    assert // check self.pool_bps exists
+    dig 1
+    *
+    intc 4 // 10000
+    /
+    dup
+    cover 3
+    // fee_router.py:77
+    // treasury_share = amount - pool_share
+    swap
+    dig 1
+    -
+    cover 2
+    // fee_router.py:78
+    // asset_id = fee_payment.xfer_asset.id
+    swap
+    gtxns XferAsset
+    swap
+    // fee_router.py:80
+    // if pool_share > UInt64(0):
+    bz route_asa_fee_after_if_else@4
+    // fee_router.py:81-86
+    // itxn.AssetTransfer(
+    //     xfer_asset=asset_id,
+    //     asset_amount=pool_share,
+    //     asset_receiver=self.pool.value,
+    //     fee=0,
+    // ).submit()
+    itxn_begin
+    // fee_router.py:84
+    // asset_receiver=self.pool.value,
+    intc_0 // 0
+    bytec_2 // "pool"
+    app_global_get_ex
+    assert // check self.pool exists
+    itxn_field AssetReceiver
+    dig 2
+    itxn_field AssetAmount
+    dup
+    itxn_field XferAsset
+    // fee_router.py:81
+    // itxn.AssetTransfer(
+    intc_2 // axfer
+    itxn_field TypeEnum
+    // fee_router.py:85
+    // fee=0,
+    intc_0 // 0
+    itxn_field Fee
+    // fee_router.py:81-86
+    // itxn.AssetTransfer(
+    //     xfer_asset=asset_id,
+    //     asset_amount=pool_share,
+    //     asset_receiver=self.pool.value,
+    //     fee=0,
+    // ).submit()
+    itxn_submit
+
+route_asa_fee_after_if_else@4:
+    // fee_router.py:88
+    // if treasury_share > UInt64(0):
+    dig 1
+    bz route_asa_fee_after_if_else@7
+    // fee_router.py:89-94
+    // itxn.AssetTransfer(
+    //     xfer_asset=asset_id,
+    //     asset_amount=treasury_share,
+    //     asset_receiver=self.treasury.value,
+    //     fee=0,
+    // ).submit()
+    itxn_begin
+    // fee_router.py:92
+    // asset_receiver=self.treasury.value,
+    intc_0 // 0
+    bytec_1 // "treasury"
+    app_global_get_ex
+    assert // check self.treasury exists
+    itxn_field AssetReceiver
+    dig 1
+    itxn_field AssetAmount
+    dup
+    itxn_field XferAsset
+    // fee_router.py:89
+    // itxn.AssetTransfer(
+    intc_2 // axfer
+    itxn_field TypeEnum
+    // fee_router.py:93
+    // fee=0,
+    intc_0 // 0
+    itxn_field Fee
+    // fee_router.py:89-94
+    // itxn.AssetTransfer(
+    //     xfer_asset=asset_id,
+    //     asset_amount=treasury_share,
+    //     asset_receiver=self.treasury.value,
+    //     fee=0,
+    // ).submit()
+    itxn_submit
+
+route_asa_fee_after_if_else@7:
+    // fee_router.py:96
+    // self.total_routed_asa.value = self.total_routed_asa.value + amount
+    intc_0 // 0
+    bytec 5 // "total_routed_asa"
+    app_global_get_ex
+    assert // check self.total_routed_asa exists
+    dig 4
+    +
+    bytec 5 // "total_routed_asa"
+    swap
+    app_global_put
+    // fee_router.py:100
+    // arc4.UInt64(asset_id),
+    dup
+    itob
+    // fee_router.py:101
+    // arc4.UInt64(pool_share),
+    dig 3
+    itob
+    // fee_router.py:102
+    // arc4.UInt64(treasury_share),
+    dig 3
+    itob
+    // fee_router.py:98-103
+    // arc4.emit(
+    //     "FeeRouted(uint64,uint64,uint64)",
+    //     arc4.UInt64(asset_id),
+    //     arc4.UInt64(pool_share),
+    //     arc4.UInt64(treasury_share),
+    // )
+    cover 2
+    concat
+    swap
+    concat
+    bytec 6 // method "FeeRouted(uint64,uint64,uint64)"
+    swap
+    concat
+    log
+    // fee_router.py:64-68
+    // # Fee split uses the current pool_bps value. If admin changes
+    // # pool_bps between a fee arriving and being routed, the new
+    // # ratio applies to all pending funds. This is acceptable for
+    // # the Genesis NFT use case.
+    // @arc4.abimethod
+    intc_1 // 1
+    return
+
+
+// fee_router.FeeRouter.route_algo_fee[routing]() -> void:
+route_algo_fee:
+    // fee_router.py:105-106
+    // # Fee split uses the current pool_bps value (see route_asa_fee note).
+    // @arc4.abimethod
+    txn GroupIndex
+    intc_1 // 1
+    -
+    dup
+    gtxns TypeEnum
+    intc_1 // pay
+    ==
+    assert // transaction type is pay
+    // fee_router.py:109
+    // fee_payment.receiver == Global.current_application_address
+    dup
+    gtxns Receiver
+    global CurrentApplicationAddress
+    ==
+    // fee_router.py:108-110
+    // assert (
+    //     fee_payment.receiver == Global.current_application_address
+    // ), "Payment must be to this app"
+    assert // Payment must be to this app
+    // fee_router.py:111
+    // amount = fee_payment.amount
+    gtxns Amount
+    dupn 2
+    // fee_router.py:112
+    // assert amount > UInt64(0), "Amount must be > 0"
+    assert // Amount must be > 0
+    // fee_router.py:114
+    // pool_share = amount * self.pool_bps.value // UInt64(10000)
+    intc_0 // 0
+    bytec_3 // "pool_bps"
+    app_global_get_ex
+    assert // check self.pool_bps exists
+    dig 1
+    *
+    intc 4 // 10000
+    /
+    dup
+    uncover 2
+    // fee_router.py:115
+    // treasury_share = amount - pool_share
+    dig 1
+    -
+    swap
+    // fee_router.py:117
+    // if pool_share > UInt64(0):
+    bz route_algo_fee_after_if_else@4
+    // fee_router.py:118-122
+    // itxn.Payment(
+    //     receiver=self.pool.value,
+    //     amount=pool_share,
+    //     fee=0,
+    // ).submit()
+    itxn_begin
+    // fee_router.py:119
+    // receiver=self.pool.value,
+    intc_0 // 0
+    bytec_2 // "pool"
+    app_global_get_ex
+    assert // check self.pool exists
+    dig 2
+    itxn_field Amount
+    itxn_field Receiver
+    // fee_router.py:118
+    // itxn.Payment(
+    intc_1 // pay
+    itxn_field TypeEnum
+    // fee_router.py:121
+    // fee=0,
+    intc_0 // 0
+    itxn_field Fee
+    // fee_router.py:118-122
+    // itxn.Payment(
+    //     receiver=self.pool.value,
+    //     amount=pool_share,
+    //     fee=0,
+    // ).submit()
+    itxn_submit
+
+route_algo_fee_after_if_else@4:
+    // fee_router.py:124
+    // if treasury_share > UInt64(0):
+    dup
+    bz route_algo_fee_after_if_else@7
+    // fee_router.py:125-129
+    // itxn.Payment(
+    //     receiver=self.treasury.value,
+    //     amount=treasury_share,
+    //     fee=0,
+    // ).submit()
+    itxn_begin
+    // fee_router.py:126
+    // receiver=self.treasury.value,
+    intc_0 // 0
+    bytec_1 // "treasury"
+    app_global_get_ex
+    assert // check self.treasury exists
+    dig 1
+    itxn_field Amount
+    itxn_field Receiver
+    // fee_router.py:125
+    // itxn.Payment(
+    intc_1 // pay
+    itxn_field TypeEnum
+    // fee_router.py:128
+    // fee=0,
+    intc_0 // 0
+    itxn_field Fee
+    // fee_router.py:125-129
+    // itxn.Payment(
+    //     receiver=self.treasury.value,
+    //     amount=treasury_share,
+    //     fee=0,
+    // ).submit()
+    itxn_submit
+
+route_algo_fee_after_if_else@7:
+    // fee_router.py:131
+    // self.total_routed_algo.value = self.total_routed_algo.value + amount
+    intc_0 // 0
+    bytec 4 // "total_routed_algo"
+    app_global_get_ex
+    assert // check self.total_routed_algo exists
+    dig 3
+    +
+    bytec 4 // "total_routed_algo"
+    swap
+    app_global_put
+    // fee_router.py:136
+    // arc4.UInt64(pool_share),
+    dig 1
+    itob
+    // fee_router.py:137
+    // arc4.UInt64(treasury_share),
+    dig 1
+    itob
+    // fee_router.py:135
+    // arc4.UInt64(0),
+    bytec 7 // 0x0000000000000000
+    // fee_router.py:133-138
+    // arc4.emit(
+    //     "FeeRouted(uint64,uint64,uint64)",
+    //     arc4.UInt64(0),
+    //     arc4.UInt64(pool_share),
+    //     arc4.UInt64(treasury_share),
+    // )
+    uncover 2
+    concat
+    swap
+    concat
+    bytec 6 // method "FeeRouted(uint64,uint64,uint64)"
+    swap
+    concat
+    log
+    // fee_router.py:105-106
+    // # Fee split uses the current pool_bps value (see route_asa_fee note).
+    // @arc4.abimethod
+    intc_1 // 1
+    return
+
+
+// fee_router.FeeRouter.flush_asa[routing]() -> void:
+flush_asa:
+    // fee_router.py:142-147
+    // # NOTE: Flush methods are intentionally public (no admin gate).
+    // # This is a safety net — if route_*_fee inner transactions fail
+    // # (e.g., receiver not opted in), anyone can trigger a flush to
+    // # move stuck funds to pool + treasury. No theft vector exists
+    // # because funds ALWAYS flow to the configured pool and treasury.
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dupn 2
+    len
+    pushint 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    // fee_router.py:149
+    // aid = asset_id.as_uint64()
+    btoi
+    dup
+    // fee_router.py:151
+    // Global.current_application_address, aid
+    global CurrentApplicationAddress
+    // fee_router.py:150-152
+    // balance, has_asset = op.AssetHoldingGet.asset_balance(
+    //     Global.current_application_address, aid
+    // )
+    swap
+    asset_holding_get AssetBalance
+    swap
+    dup
+    uncover 2
+    // fee_router.py:153
+    // assert has_asset, "Contract not opted into this asset"
+    assert // Contract not opted into this asset
+    // fee_router.py:154
+    // assert balance > UInt64(0), "No balance to flush"
+    dup
+    assert // No balance to flush
+    // fee_router.py:156
+    // pool_share = balance * self.pool_bps.value // UInt64(10000)
+    intc_0 // 0
+    bytec_3 // "pool_bps"
+    app_global_get_ex
+    assert // check self.pool_bps exists
+    dig 1
+    *
+    intc 4 // 10000
+    /
+    dup
+    uncover 2
+    // fee_router.py:157
+    // treasury_share = balance - pool_share
+    dig 1
+    -
+    swap
+    // fee_router.py:159
+    // if pool_share > UInt64(0):
+    bz flush_asa_after_if_else@4
+    // fee_router.py:160-165
+    // itxn.AssetTransfer(
+    //     xfer_asset=aid,
+    //     asset_amount=pool_share,
+    //     asset_receiver=self.pool.value,
+    //     fee=0,
+    // ).submit()
+    itxn_begin
+    // fee_router.py:163
+    // asset_receiver=self.pool.value,
+    intc_0 // 0
+    bytec_2 // "pool"
+    app_global_get_ex
+    assert // check self.pool exists
+    itxn_field AssetReceiver
+    dig 1
+    itxn_field AssetAmount
+    dig 3
+    itxn_field XferAsset
+    // fee_router.py:160
+    // itxn.AssetTransfer(
+    intc_2 // axfer
+    itxn_field TypeEnum
+    // fee_router.py:164
+    // fee=0,
+    intc_0 // 0
+    itxn_field Fee
+    // fee_router.py:160-165
+    // itxn.AssetTransfer(
+    //     xfer_asset=aid,
+    //     asset_amount=pool_share,
+    //     asset_receiver=self.pool.value,
+    //     fee=0,
+    // ).submit()
+    itxn_submit
+
+flush_asa_after_if_else@4:
+    // fee_router.py:167
+    // if treasury_share > UInt64(0):
+    dup
+    bz flush_asa_after_if_else@7
+    // fee_router.py:168-173
+    // itxn.AssetTransfer(
+    //     xfer_asset=aid,
+    //     asset_amount=treasury_share,
+    //     asset_receiver=self.treasury.value,
+    //     fee=0,
+    // ).submit()
+    itxn_begin
+    // fee_router.py:171
+    // asset_receiver=self.treasury.value,
+    intc_0 // 0
+    bytec_1 // "treasury"
+    app_global_get_ex
+    assert // check self.treasury exists
+    itxn_field AssetReceiver
+    dup
+    itxn_field AssetAmount
+    dig 3
+    itxn_field XferAsset
+    // fee_router.py:168
+    // itxn.AssetTransfer(
+    intc_2 // axfer
+    itxn_field TypeEnum
+    // fee_router.py:172
+    // fee=0,
+    intc_0 // 0
+    itxn_field Fee
+    // fee_router.py:168-173
+    // itxn.AssetTransfer(
+    //     xfer_asset=aid,
+    //     asset_amount=treasury_share,
+    //     asset_receiver=self.treasury.value,
+    //     fee=0,
+    // ).submit()
+    itxn_submit
+
+flush_asa_after_if_else@7:
+    // fee_router.py:175
+    // self.total_routed_asa.value = self.total_routed_asa.value + balance
+    intc_0 // 0
+    bytec 5 // "total_routed_asa"
+    app_global_get_ex
+    assert // check self.total_routed_asa exists
+    dig 3
+    +
+    bytec 5 // "total_routed_asa"
+    swap
+    app_global_put
+    // fee_router.py:180
+    // arc4.UInt64(pool_share),
+    dig 1
+    itob
+    // fee_router.py:181
+    // arc4.UInt64(treasury_share),
+    dig 1
+    itob
+    // fee_router.py:177-182
+    // arc4.emit(
+    //     "FeeRouted(uint64,uint64,uint64)",
+    //     asset_id,
+    //     arc4.UInt64(pool_share),
+    //     arc4.UInt64(treasury_share),
+    // )
+    dig 6
+    uncover 2
+    concat
+    swap
+    concat
+    bytec 6 // method "FeeRouted(uint64,uint64,uint64)"
+    swap
+    concat
+    log
+    // fee_router.py:142-147
+    // # NOTE: Flush methods are intentionally public (no admin gate).
+    // # This is a safety net — if route_*_fee inner transactions fail
+    // # (e.g., receiver not opted in), anyone can trigger a flush to
+    // # move stuck funds to pool + treasury. No theft vector exists
+    // # because funds ALWAYS flow to the configured pool and treasury.
+    // @arc4.abimethod
+    intc_1 // 1
+    return
+
+
+// fee_router.FeeRouter.flush_algo[routing]() -> void:
+flush_algo:
+    // fee_router.py:187
+    // balance = Global.current_application_address.balance
+    global CurrentApplicationAddress
+    acct_params_get AcctBalance
+    assert // account funded
+    // fee_router.py:188
+    // min_bal = Global.current_application_address.min_balance
+    global CurrentApplicationAddress
+    acct_params_get AcctMinBalance
+    assert // account funded
+    // fee_router.py:189
+    // assert balance > min_bal, "No excess ALGO to flush"
+    dup2
+    >
+    assert // No excess ALGO to flush
+    // fee_router.py:190
+    // available = balance - min_bal
+    -
+    dup
+    // fee_router.py:192
+    // pool_share = available * self.pool_bps.value // UInt64(10000)
+    intc_0 // 0
+    bytec_3 // "pool_bps"
+    app_global_get_ex
+    assert // check self.pool_bps exists
+    dig 1
+    *
+    intc 4 // 10000
+    /
+    dup
+    uncover 2
+    // fee_router.py:193
+    // treasury_share = available - pool_share
+    dig 1
+    -
+    swap
+    // fee_router.py:195
+    // if pool_share > UInt64(0):
+    bz flush_algo_after_if_else@4
+    // fee_router.py:196-200
+    // itxn.Payment(
+    //     receiver=self.pool.value,
+    //     amount=pool_share,
+    //     fee=0,
+    // ).submit()
+    itxn_begin
+    // fee_router.py:197
+    // receiver=self.pool.value,
+    intc_0 // 0
+    bytec_2 // "pool"
+    app_global_get_ex
+    assert // check self.pool exists
+    dig 2
+    itxn_field Amount
+    itxn_field Receiver
+    // fee_router.py:196
+    // itxn.Payment(
+    intc_1 // pay
+    itxn_field TypeEnum
+    // fee_router.py:199
+    // fee=0,
+    intc_0 // 0
+    itxn_field Fee
+    // fee_router.py:196-200
+    // itxn.Payment(
+    //     receiver=self.pool.value,
+    //     amount=pool_share,
+    //     fee=0,
+    // ).submit()
+    itxn_submit
+
+flush_algo_after_if_else@4:
+    // fee_router.py:202
+    // if treasury_share > UInt64(0):
+    dup
+    bz flush_algo_after_if_else@7
+    // fee_router.py:203-207
+    // itxn.Payment(
+    //     receiver=self.treasury.value,
+    //     amount=treasury_share,
+    //     fee=0,
+    // ).submit()
+    itxn_begin
+    // fee_router.py:204
+    // receiver=self.treasury.value,
+    intc_0 // 0
+    bytec_1 // "treasury"
+    app_global_get_ex
+    assert // check self.treasury exists
+    dig 1
+    itxn_field Amount
+    itxn_field Receiver
+    // fee_router.py:203
+    // itxn.Payment(
+    intc_1 // pay
+    itxn_field TypeEnum
+    // fee_router.py:206
+    // fee=0,
+    intc_0 // 0
+    itxn_field Fee
+    // fee_router.py:203-207
+    // itxn.Payment(
+    //     receiver=self.treasury.value,
+    //     amount=treasury_share,
+    //     fee=0,
+    // ).submit()
+    itxn_submit
+
+flush_algo_after_if_else@7:
+    // fee_router.py:209
+    // self.total_routed_algo.value = self.total_routed_algo.value + available
+    intc_0 // 0
+    bytec 4 // "total_routed_algo"
+    app_global_get_ex
+    assert // check self.total_routed_algo exists
+    dig 3
+    +
+    bytec 4 // "total_routed_algo"
+    swap
+    app_global_put
+    // fee_router.py:214
+    // arc4.UInt64(pool_share),
+    dig 1
+    itob
+    // fee_router.py:215
+    // arc4.UInt64(treasury_share),
+    dig 1
+    itob
+    // fee_router.py:213
+    // arc4.UInt64(0),
+    bytec 7 // 0x0000000000000000
+    // fee_router.py:211-216
+    // arc4.emit(
+    //     "FeeRouted(uint64,uint64,uint64)",
+    //     arc4.UInt64(0),
+    //     arc4.UInt64(pool_share),
+    //     arc4.UInt64(treasury_share),
+    // )
+    uncover 2
+    concat
+    swap
+    concat
+    bytec 6 // method "FeeRouted(uint64,uint64,uint64)"
+    swap
+    concat
+    log
+    // fee_router.py:184-185
+    // # Flush is intentionally public (see flush_asa note).
+    // @arc4.abimethod
+    intc_1 // 1
+    return
+
+
+// fee_router.FeeRouter.admin_opt_in[routing]() -> void:
+admin_opt_in:
+    // fee_router.py:220
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    pushint 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    // fee_router.py:222
+    // assert Txn.sender == self.admin.value, "Only admin"
+    txn Sender
+    intc_0 // 0
+    bytec_0 // "admin"
+    app_global_get_ex
+    assert // check self.admin exists
+    ==
+    assert // Only admin
+    // fee_router.py:223-228
+    // itxn.AssetTransfer(
+    //     xfer_asset=asset_id.as_uint64(),
+    //     asset_amount=0,
+    //     asset_receiver=Global.current_application_address,
+    //     fee=0,
+    // ).submit()
+    itxn_begin
+    // fee_router.py:224
+    // xfer_asset=asset_id.as_uint64(),
+    btoi
+    // fee_router.py:226
+    // asset_receiver=Global.current_application_address,
+    global CurrentApplicationAddress
+    itxn_field AssetReceiver
+    // fee_router.py:225
+    // asset_amount=0,
+    intc_0 // 0
+    itxn_field AssetAmount
+    itxn_field XferAsset
+    // fee_router.py:223
+    // itxn.AssetTransfer(
+    intc_2 // axfer
+    itxn_field TypeEnum
+    // fee_router.py:227
+    // fee=0,
+    intc_0 // 0
+    itxn_field Fee
+    // fee_router.py:223-228
+    // itxn.AssetTransfer(
+    //     xfer_asset=asset_id.as_uint64(),
+    //     asset_amount=0,
+    //     asset_receiver=Global.current_application_address,
+    //     fee=0,
+    // ).submit()
+    itxn_submit
+    // fee_router.py:220
+    // @arc4.abimethod
+    intc_1 // 1
+    return
+
+
+// fee_router.FeeRouter.admin_set_pool_bps[routing]() -> void:
+admin_set_pool_bps:
+    // fee_router.py:230
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    pushint 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    // fee_router.py:232
+    // assert Txn.sender == self.admin.value, "Only admin"
+    txn Sender
+    intc_0 // 0
+    bytec_0 // "admin"
+    app_global_get_ex
+    assert // check self.admin exists
+    ==
+    assert // Only admin
+    // fee_router.py:233
+    // bps = new_bps.as_uint64()
+    btoi
+    // fee_router.py:234
+    // assert bps > UInt64(0), "pool_bps must be > 0"
+    dup
+    assert // pool_bps must be > 0
+    // fee_router.py:235
+    // assert bps <= UInt64(5000), "pool_bps must be <= 5000"
+    dup
+    pushint 5000
+    <=
+    assert // pool_bps must be <= 5000
+    // fee_router.py:236
+    // self.pool_bps.value = bps
+    bytec_3 // "pool_bps"
+    swap
+    app_global_put
+    // fee_router.py:230
+    // @arc4.abimethod
+    intc_1 // 1
+    return
+
+
+// fee_router.FeeRouter.admin_set_treasury[routing]() -> void:
+admin_set_treasury:
+    // fee_router.py:238
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_3 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    // fee_router.py:240
+    // assert Txn.sender == self.admin.value, "Only admin"
+    txn Sender
+    intc_0 // 0
+    bytec_0 // "admin"
+    app_global_get_ex
+    assert // check self.admin exists
+    ==
+    assert // Only admin
+    // fee_router.py:241
+    // self.treasury.value = new_treasury.native
+    bytec_1 // "treasury"
+    swap
+    app_global_put
+    // fee_router.py:238
+    // @arc4.abimethod
+    intc_1 // 1
+    return
+
+
+// fee_router.FeeRouter.admin_set_pool[routing]() -> void:
+admin_set_pool:
+    // fee_router.py:243
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_3 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    // fee_router.py:245
+    // assert Txn.sender == self.admin.value, "Only admin"
+    txn Sender
+    intc_0 // 0
+    bytec_0 // "admin"
+    app_global_get_ex
+    assert // check self.admin exists
+    ==
+    assert // Only admin
+    // fee_router.py:246
+    // self.pool.value = new_pool.native
+    bytec_2 // "pool"
+    swap
+    app_global_put
+    // fee_router.py:243
+    // @arc4.abimethod
+    intc_1 // 1
+    return
+
+
+// fee_router.FeeRouter.admin_set_admin[routing]() -> void:
+admin_set_admin:
+    // fee_router.py:248
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_3 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    // fee_router.py:250
+    // assert Txn.sender == self.admin.value, "Only admin"
+    txn Sender
+    intc_0 // 0
+    bytec_0 // "admin"
+    app_global_get_ex
+    assert // check self.admin exists
+    ==
+    assert // Only admin
+    // fee_router.py:251
+    // self.admin.value = new_admin.native
+    bytec_0 // "admin"
+    swap
+    app_global_put
+    // fee_router.py:248
+    // @arc4.abimethod
+    intc_1 // 1
+    return
+
+
+// fee_router.FeeRouter.get_config[routing]() -> void:
+get_config:
+    // fee_router.py:261
+    // arc4.Address(self.treasury.value),
+    intc_0 // 0
+    bytec_1 // "treasury"
+    app_global_get_ex
+    assert // check self.treasury exists
+    // fee_router.py:262
+    // arc4.Address(self.pool.value),
+    intc_0 // 0
+    bytec_2 // "pool"
+    app_global_get_ex
+    assert // check self.pool exists
+    // fee_router.py:263
+    // arc4.UInt64(self.pool_bps.value),
+    intc_0 // 0
+    bytec_3 // "pool_bps"
+    app_global_get_ex
+    assert // check self.pool_bps exists
+    itob
+    // fee_router.py:264
+    // arc4.UInt64(self.total_routed_algo.value),
+    intc_0 // 0
+    bytec 4 // "total_routed_algo"
+    app_global_get_ex
+    assert // check self.total_routed_algo exists
+    itob
+    // fee_router.py:265
+    // arc4.UInt64(self.total_routed_asa.value),
+    intc_0 // 0
+    bytec 5 // "total_routed_asa"
+    app_global_get_ex
+    assert // check self.total_routed_asa exists
+    itob
+    // fee_router.py:259-267
+    // return arc4.Tuple(
+    //     (
+    //         arc4.Address(self.treasury.value),
+    //         arc4.Address(self.pool.value),
+    //         arc4.UInt64(self.pool_bps.value),
+    //         arc4.UInt64(self.total_routed_algo.value),
+    //         arc4.UInt64(self.total_routed_asa.value),
+    //     )
+    // )
+    uncover 4
+    uncover 4
+    concat
+    uncover 3
+    concat
+    uncover 2
+    concat
+    swap
+    concat
+    // fee_router.py:255
+    // @arc4.abimethod(readonly=True)
+    pushbytes 0x151f7c75
+    swap
+    concat
+    log
+    intc_1 // 1
+    return
